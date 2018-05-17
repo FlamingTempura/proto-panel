@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" href="../../style.css">
+<style>
+.wifi {
+	position: relative;
+}
+.icon {
+	position: absolute;
+	right: 10px;
+	top: 7px;
+	height: 22px;
+	width: 22px;
+}
+.icon * {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+.icon .status {
+	z-index: 1;
+	overflow: hidden;
+}
+.icon .status img {
+	filter: brightness(10%);
+}
+.icon .secure {
+	filter: sepia(100%) hue-rotate(-12deg) saturate(1200%);
+	z-index: 2;
+}
+</style>
+</head>
+<body id="battery-dropdown" class="menu">
+	<div class="container">
+		<!-- <div class="item wifi">
+			<div class="wifi-name">Blah</div>
+			<div class="wifi-icon">
+				<img class="net-wifi inactive" src="plugins/network/net-wifi.png">
+				<div class="net-wifi-status status">
+					<img class="net-wifi-status-icon active" src="plugins/network/net-wifi.png">
+				</div>
+				<img class="net-wifi inactive" src="plugins/network/net-wifi-secure.png">
+			</div>
+		</div> -->
+		<div id="wifis"></div>
+		<button class="item" id="network-manager">
+			Network manager
+		</button>
+	</div>
+
+	<template id="wifi-template">
+		<div class="item wifi">
+			<div class="name"></div>
+			<div class="icon">
+				<img class="bg" src="net-wifi.png">
+				<div class="status">
+					<img src="net-wifi.png">
+				</div>
+				<img class="secure" src="net-wifi-secure.png">
+			</div>
+		</div>
+	</template>
+	<script>
+		const {ipcRenderer} = require('electron');
+		ipcRenderer.send('network:initiated');
+		ipcRenderer.on('network:wifis', (e, wifis) => {
+			document.querySelector(`#wifis`).innerHTML = '';
+			let template = document.querySelector('#wifi-template'),
+				name = template.content.querySelector('.name'),
+				secure = template.content.querySelector('.secure'),
+				statusOut = template.content.querySelector('.status'),
+				statusIn = template.content.querySelector('.status img');
+			wifis.forEach(wifi => {
+				name.textContent = wifi.ssid;
+				secure.style.display = wifi.security ? 'block' : 'none';
+				statusOut.style.top = `${100 - wifi.strength}%`;
+				statusIn.style.top = `${-100 + wifi.strength}%`;
+				let el = document.importNode(template.content, true);
+				el.onclick = () => ipcRenderer.send(`network:wifi`, wifi.ssid);
+				document.querySelector(`#wifis`).appendChild(el);
+			});
+		});
+			
+		document.getElementById('network-manager').onclick = () => ipcRenderer.send('network:manager');
+
+	</script>
+</body>
+</html>

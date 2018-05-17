@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" href="../../style.css">
+</head>
+<body id="audio-menu" class="menu">
+	<div class="container">
+		
+		<div class="header">
+			<div class="tick" style="visibility: hidden"></div>
+			Output
+		</div>
+		<div>
+			<div id="sink-volume" class="slider">
+				<div class="bar"></div>
+				<div class="bar-active"></div>
+				<div class="handle"></div>
+			</div>
+			<div id="sink-toggle" class="switch right">
+				<div class="handle"></div>
+			</div>
+		</div>
+		<div id="sinks"></div>
+		<div class="separator"></div>
+		
+		<div class="header">
+			<div class="tick" style="visibility: hidden"></div>
+			Input
+		</div>
+		<div>
+			<div id="source-volume" class="slider">
+				<div class="bar"></div>
+				<div class="bar-active"></div>
+				<div class="handle"></div>
+			</div>
+			<div id="source-toggle" class="switch right">
+				<div class="handle"></div>
+			</div>
+		</div>
+		<div id="sources"></div>
+		<div class="separator"></div>
+
+		<button class="item" id="audio-mixer">
+			<div class="tick" style="visibility: hidden"></div>
+			Audio Mixer
+		</button>
+	</div>
+	<template id="item-template">
+		<label class="item">
+			<span class="tick">✓</span>
+			<span class="name"></span>
+		</label>
+	</template>
+</body>
+<script>
+'use strict';
+
+const {ipcRenderer} = require('electron');
+
+const log = (...msg) => ipcRenderer.send('log', msg);
+
+const renderList = (type, devices) => {
+	document.getElementById(`${type}s`).innerHTML = '';
+	let template = document.querySelector('#item-template'),
+		item = template.content.querySelector('.item'),
+		tick = template.content.querySelector('.tick'),
+		name = template.content.querySelector('.name');
+	devices.forEach(device => {
+		item.onclick = () => ipcRenderer.send(`audio:${type}`, item);
+		name.textContent = device.name;
+		tick.style.visibility = device.active ? 'visible' : 'hidden';
+		let el = document.importNode(template.content, true);
+		document.querySelector(`#${type}s`).appendChild(el);
+	});
+};
+
+const getAPI = (namespace) => {
+	return new Promise(resolve => {
+		ipcRenderer.send(namespace);
+		ipcRenderer.on(`${namespace}.api`, (e, functions) => {
+			let api = {};
+			functions.forEach(f => {
+				api[f] = (...args) => {
+					let listenCB, resolved;
+					let p = new Promise(resolve => {
+						log('call', `${namespace}.${f}`);
+						let id = Math.round(Math.random() * 1000000000);
+						ipcRenderer.send(`${namespace}.${f}`, id, ...args);
+						let handler = (e, data) => {
+							log('received', `${namespace}.${f}.${id}`);
+							if (!resolved) {
+								if (!listenCB) {
+									ipcRenderer.removeListener(`${namespace}.${f}.${id}`, handler);
+								}
+								resolved = true;
+								resolve(data);
+							}
+							if (listenCB) {
+								listenCB(data);
+							}
+						};
+						ipcRenderer.on(`${namespace}.${f}.${id}`, handler);
+					});
+					p.listen = cb => listenCB = cb;
+					return p;
+				};
+			});
+			resolve(api);
+		});
+	});
+};
+
+
+getAPI('audio').then(audio => {
+	console.log('init!!');
+	log('init');
+	['sink', 'source'].forEach(type => {
+		let $toggle = document.querySelector(`#${type}-toggle`);
+		audio.listen(type).listen(devices => {
+			renderList(type, devices);
+			let active = devices.find(d => d.active);
+			if (active) {
+				//console.log($toggle.outerHTML)
+				log(type, 'active', active, !active.mute);
+				$toggle.classList.toggle('on', !active.mute);
+				//device.volume
+				$toggle.onclick = () => audio.toggleMute(type, active.id);
+			} else {
+				// TODO: hide slider/mute
+			}
+		});
+	});
+
+	document.querySelector('#audio-mixer').onclick = () => audio.openMixer();
+});
+
+</script>
+</html>

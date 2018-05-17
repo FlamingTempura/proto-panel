@@ -1,0 +1,11 @@
+<button class="applet" id="power" onclick="click('power:menu')">
+	<img id="bat-bg" class="inactive" src="plugins/power/bat.png">
+	<div id="bat-status" class="status">
+		<img id="bat-status-icon" class="active" src="plugins/power/bat.png">
+	</div>
+	<img id="bat-charging" class="black" src="plugins/power/bat-charging.png">
+	<img id="bat-critical" class="black" src="plugins/power/bat-critical.png">	
+</button>
+<script>
+	document.getElementById('power').onclick = () => emit('power.menu');
+</script>
