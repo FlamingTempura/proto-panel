@@ -16,11 +16,9 @@
 				<div class="bar-active"></div>
 				<div class="handle"></div>
 			</div>
-			<div id="sink-toggle" class="switch right">
-				<div class="handle"></div>
-			</div>
+			<button id="sink-toggle" class="switch right"></button>
 		</div>
-		<div id="sinks"></div>
+		<div id="sink-list"></div>
 		<div class="separator"></div>
 		
 		<div class="header">
@@ -33,11 +31,9 @@
 				<div class="bar-active"></div>
 				<div class="handle"></div>
 			</div>
-			<div id="source-toggle" class="switch right">
-				<div class="handle"></div>
-			</div>
+			<button id="source-toggle" class="switch right"></button>
 		</div>
-		<div id="sources"></div>
+		<div id="source-list"></div>
 		<div class="separator"></div>
 
 		<button class="item" id="audio-mixer">
@@ -46,92 +42,62 @@
 		</button>
 	</div>
 	<template id="item-template">
-		<label class="item">
+		<button class="item">
 			<span class="tick">✓</span>
 			<span class="name"></span>
-		</label>
+		</button>
 	</template>
 </body>
 <script>
 'use strict';
 
-const {ipcRenderer} = require('electron');
-
-const log = (...msg) => ipcRenderer.send('log', msg);
-
-const renderList = (type, devices) => {
-	document.getElementById(`${type}s`).innerHTML = '';
-	let template = document.querySelector('#item-template'),
-		item = template.content.querySelector('.item'),
-		tick = template.content.querySelector('.tick'),
-		name = template.content.querySelector('.name');
-	devices.forEach(device => {
-		item.onclick = () => ipcRenderer.send(`audio:${type}`, item);
-		name.textContent = device.name;
-		tick.style.visibility = device.active ? 'visible' : 'hidden';
-		let el = document.importNode(template.content, true);
-		document.querySelector(`#${type}s`).appendChild(el);
-	});
-};
-
-const getAPI = (namespace) => {
-	return new Promise(resolve => {
-		ipcRenderer.send(namespace);
-		ipcRenderer.on(`${namespace}.api`, (e, functions) => {
-			let api = {};
-			functions.forEach(f => {
-				api[f] = (...args) => {
-					let listenCB, resolved;
-					let p = new Promise(resolve => {
-						log('call', `${namespace}.${f}`);
-						let id = Math.round(Math.random() * 1000000000);
-						ipcRenderer.send(`${namespace}.${f}`, id, ...args);
-						let handler = (e, data) => {
-							log('received', `${namespace}.${f}.${id}`);
-							if (!resolved) {
-								if (!listenCB) {
-									ipcRenderer.removeListener(`${namespace}.${f}.${id}`, handler);
-								}
-								resolved = true;
-								resolve(data);
-							}
-							if (listenCB) {
-								listenCB(data);
-							}
-						};
-						ipcRenderer.on(`${namespace}.${f}.${id}`, handler);
-					});
-					p.listen = cb => listenCB = cb;
-					return p;
-				};
-			});
-			resolve(api);
-		});
-	});
-};
-
+const { getAPI, $, $$, createSlider, log } = require('../../client-utils.js');
 
 getAPI('audio').then(audio => {
-	console.log('init!!');
-	log('init');
+	let $itemTemplate = $('#item-template');
 	['sink', 'source'].forEach(type => {
-		let $toggle = document.querySelector(`#${type}-toggle`);
+		let $toggle = document.querySelector(`#${type}-toggle`),
+			$slider = document.querySelector(`#${type}-volume`),
+			$list = $(`#${type}-list`),
+			activeDevice;
 		audio.listen(type).listen(devices => {
-			renderList(type, devices);
-			let active = devices.find(d => d.active);
-			if (active) {
-				//console.log($toggle.outerHTML)
-				log(type, 'active', active, !active.mute);
-				$toggle.classList.toggle('on', !active.mute);
-				//device.volume
-				$toggle.onclick = () => audio.toggleMute(type, active.id);
+			log('REDRAW');
+			activeDevice = devices.find(d => d.active);
+			$$('.item', $list).forEach($el => {
+				let device = devices.find(d => d.idHash === $el.getAttribute('id'));
+				if (!device) {
+					log('rm', $el.getAttribute('id'));
+					$list.removeChild($el);
+				}
+			});
+			devices.forEach(device => {
+				let $el = $(`#${device.idHash}`);
+				if (!$el) {
+					log('NEW EL', type);
+					let $new = document.importNode($itemTemplate.content, true);
+					$el = $('.item', $new);
+					$el.setAttribute('id', device.idHash);
+					$el.addEventListener('click', () => audio.setDevice(type, device.id));
+					$('.name', $el).textContent = device.description;
+					$list.appendChild($new);
+				}
+				$('.tick', $el).style.visibility = device.active ? 'visible' : 'hidden';
+			});
+			if (activeDevice) {
+				$toggle.classList.toggle('on', !activeDevice.mute);
+				$slider.setValue(activeDevice.volume);
 			} else {
 				// TODO: hide slider/mute
 			}
 		});
+		$toggle.addEventListener('click', () => audio.toggleMute(type, activeDevice.id));
+		createSlider($slider);
+		$slider.addEventListener('change', () => {
+			audio.setVolume(type, activeDevice.id, Math.round($slider.getValue()));
+		});
 	});
 
-	document.querySelector('#audio-mixer').onclick = () => audio.openMixer();
+	$('#audio-mixer').onclick = () => audio.openMixer();
 });
 
 </script>

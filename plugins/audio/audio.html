@@ -10,5 +10,42 @@
 	</div>
 </button>
 <script>
-	document.getElementById('audio').onclick = () => emit('audio:menu');
+(function () {
+	'use strict';
+
+	const { getAPI, $ } = require('./client-utils.js');
+
+	getAPI('audio').then(audio => {
+		$('#audio').addEventListener('click', () => audio.openMenu());
+
+		audio.listen('sink').listen(devices => {
+			let activeDevice = devices.find(d => d.active);
+			if (!activeDevice) {
+				// TODO: no audio icon
+				return;
+			}
+			let { volume, mute } = activeDevice;
+			// clip the volume to the rings
+			let iconCropWidth;
+			if (volume < 15) {
+				iconCropWidth = 43;
+			} else if (volume < 45) {
+				iconCropWidth = 54;
+			} else if (volume < 80) {
+				iconCropWidth = 75;
+			} else {
+				iconCropWidth = 100;
+			}
+			$('#audio').title = mute ? 'Muted' : `Volume ${volume}%`;
+			$('#vol-status').style.left = `${-100 + iconCropWidth}%`;
+			$('#vol-status-icon').style.left = `${100 - iconCropWidth}%`;
+			$('#vol-status-middle').style.left = `${-91 + iconCropWidth}%`;
+			$('#vol-status-middle-icon').style.left = `${91 - iconCropWidth}%`;
+			$('#vol-status-middle').style.display = !mute ? 'block' : 'none';
+			$('#vol-mute').style.display = mute ? 'block' : 'none';
+			$('#vol-status').style.display = !mute ? 'block' : 'none';
+			$('#vol-bg').style.display = !mute ? 'block' : 'none';
+		});
+	});
+}());
 </script>

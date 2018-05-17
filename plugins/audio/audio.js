@@ -1,46 +1,70 @@
 'use strict';
 
-const EventEmitter = require('events');
 const electron = require('electron');
 const { exec } = require('../../utils');
 const { spawn } = require('child_process');
-const events = new EventEmitter();
+const Bluebird = require('bluebird');
+const { createHash } = require('crypto');
+
+let pactl = spawn('pactl', ['subscribe'], { shell: true }).stdout;
 
 const audio = {
 	getDevices(type) {
-		return exec('pactl', ['list', `${type}s`])
-			.then(data => {
-				//console.log('!!!!!!!!!', data)
-				let m1 = data.match(/Volume:[^\/]+\/\s*(\d+)%/);
-				return data.split(`S${type.slice(1)} #`).slice(1)
-					.map(d => ({
-						id: d.match(/^([0-9]+)/)[1],
-						name: d.match(/Description: ([^\n]+)\n/)[1],
-						active: d.includes('State: RUNNING') || d.includes('State: IDLE'),
-						volume: Number(m1 && m1[1]),
-						mute: !!data.match(/Mute:\s*yes/)
-					}))
+		return Bluebird
+			.all([
+				exec('pacmd', ['stat']),
+				exec('pactl', ['list', `${type}s`])
+			])
+			.then(([stat, list]) => {
+				let m = stat.match(new RegExp(`Default ${type} name: ([^\n]+)`)),
+					defaultDevice = m && m[1];
+				return list.split(`S${type.slice(1)} #`).slice(1)
+					.map(d => {
+						let m1 = d.match(/Volume:[^\/]+\/\s*(\d+)%/),
+							m2 = d.match(/Name: ([^\n]+)/),
+							name = m2 && m2[1],
+							id = d.match(/^([0-9]+)/)[1];
+						return {
+							id,
+							idHash: type + '-' + createHash('md5').update(id).digest('hex'), // can be safely used as an element id
+							name,
+							description: d.match(/Description: ([^\n]+)\n/)[1],
+							active: name === defaultDevice,
+							volume: Number(m1 && m1[1]),
+							mute: !!d.match(/Mute:\s*yes/)
+						};
+					})
 					.sort((a, b) => a.state < b.state); // running device goes first
 			});
 	},
+	setDevice(type, id) {
+		return exec('pactl', [`set-default-${type}`, id])
+			.then(() => pactl.emit('data', `'change' on ${type}`)); // hack to force client to update
+	},
 	setVolume(type, id, volume) {
-		return exec('pactl', [`set-${type}-volume`, id, volume]);
+		return exec('pactl', [`set-${type}-volume`, id, `${volume}%`]);
 	},
 	toggleMute(type, id, mute) {
 		return exec('pactl', [`set-${type}-mute`, id, mute === undefined ? 'toggle' : mute ? 1 : 0]);
 	},
 	listen(type) {
-		let cb;
-		spawn('pactl', ['subscribe'], { shell: true }).stdout.on('data', data => {
-			if (data.toString().includes(type)) {
-				audio.getDevices(type).then(cb);
+		let cb, prevData;
+		pactl.on('data', data => {
+			if (data.toString().includes(`'change' on ${type}`)) {
+				audio.getDevices(type)
+					.then(data => {
+						if (JSON.stringify(data) !== JSON.stringify(prevData)) {
+							cb(data);
+							prevData = data;
+						}
+					});
 			}
 		});
 		audio.getDevices(type).then((data) => cb(data));
 		return { listen: _cb => cb = _cb };
 	},
 	openMixer() {
-		exec('pavucontrol');
+		return exec('pavucontrol');
 	},
 	openMenu() {
 		let display = electron.screen.getAllDisplays()[0];
@@ -53,47 +77,16 @@ const audio = {
 			x: display.bounds.width - 300,
 			focusable: true,
 			resizable: false,
-			titleBarStyle: 'hidden'
+			titleBarStyle: 'hidden',
+			alwaysOnTop: true
 		});
 		window.setMenu(null);
 		window.loadURL(`file://${__dirname}/audio-menu.html`);
-		//window.on('blur', () => window.close());
+		window.on('blur', () => window.close());
 	}
 };
 
 module.exports = {
 	applet: `${__dirname}/audio.html`,
-	api: audio,
-	init(panel) {
-		//listenVolume();
-		//volume('sink');
-		//volume('source');
-		events.on('volume-source', volume => {
-			// clip the volume to the rings
-			let clippedVol = volume.percent;
-			if (volume.percent >= 45 && volume.percent < 65) {
-				clippedVol = 53;
-			}
-			if (volume.percent >= 65 && volume.percent < 90) {
-				clippedVol = 70;
-			}
-			if (volume.percent >= 90) {
-				clippedVol = 100;
-			}
-			panel.js(`
-				document.getElementById('audio').title = "${volume.mute ? 'Muted' : `Volume ${volume.percent}%` }";
-				document.getElementById('vol-status').style.left = "${-100 + clippedVol}%";
-				document.getElementById('vol-status-icon').style.left = "${100 - clippedVol}%";
-				document.getElementById('vol-status-middle').style.left = "${-91 + clippedVol}%";
-				document.getElementById('vol-status-middle-icon').style.left = "${91 - clippedVol}%";
-				document.getElementById('vol-status-middle').style.display = "${!volume.mute && volume.percent > 50 ? 'block' : 'none'}";
-				document.getElementById('vol-mute').style.display = "${volume.mute ? 'block' : 'none'}";
-				document.getElementById('vol-status').style.display = "${!volume.mute ? 'block' : 'none'}";
-				document.getElementById('vol-bg').style.display = "${!volume.mute ? 'block' : 'none'}";
-			`);
-		});
-
-		audio.openMenu();
-
-	}
+	api: audio
 };

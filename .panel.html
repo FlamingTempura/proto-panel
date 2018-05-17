@@ -16,7 +16,44 @@
 	</div>
 </button>
 <script>
-	document.getElementById('audio').onclick = () => emit('audio:menu');
+(function () {
+	'use strict';
+
+	const { getAPI, $ } = require('./client-utils.js');
+
+	getAPI('audio').then(audio => {
+		$('#audio').addEventListener('click', () => audio.openMenu());
+
+		audio.listen('sink').listen(devices => {
+			let activeDevice = devices.find(d => d.active);
+			if (!activeDevice) {
+				// TODO: no audio icon
+				return;
+			}
+			let { volume, mute } = activeDevice;
+			// clip the volume to the rings
+			let iconCropWidth;
+			if (volume < 15) {
+				iconCropWidth = 43;
+			} else if (volume < 45) {
+				iconCropWidth = 54;
+			} else if (volume < 80) {
+				iconCropWidth = 75;
+			} else {
+				iconCropWidth = 100;
+			}
+			$('#audio').title = mute ? 'Muted' : `Volume ${volume}%`;
+			$('#vol-status').style.left = `${-100 + iconCropWidth}%`;
+			$('#vol-status-icon').style.left = `${100 - iconCropWidth}%`;
+			$('#vol-status-middle').style.left = `${-91 + iconCropWidth}%`;
+			$('#vol-status-middle-icon').style.left = `${91 - iconCropWidth}%`;
+			$('#vol-status-middle').style.display = !mute ? 'block' : 'none';
+			$('#vol-mute').style.display = mute ? 'block' : 'none';
+			$('#vol-status').style.display = !mute ? 'block' : 'none';
+			$('#vol-bg').style.display = !mute ? 'block' : 'none';
+		});
+	});
+}());
 </script><button class="applet" id="network" onclick="click('network:menu')">
 	<img id="net-none" class="active" src="plugins/network/net-none.png">
 	<img id="net-wifi" class="inactive" src="plugins/network/net-wifi.png">
@@ -25,7 +62,15 @@
 	</div>
 </button>
 <script>
-	document.getElementById('network').onclick = () => emit('network:menu');
+(function () {
+	'use strict';
+
+	const { getAPI, $ } = require('./client-utils.js');
+
+	getAPI('audio').then(audio => {
+		$('#audio').addEventListener('click', () => audio.openMenu());
+	});
+}());
 </script><button class="applet" id="power" onclick="click('power:menu')">
 	<img id="bat-bg" class="inactive" src="plugins/power/bat.png">
 	<div id="bat-status" class="status">
@@ -36,7 +81,19 @@
 </button>
 <script>
 	document.getElementById('power').onclick = () => emit('power.menu');
-</script><button class="applet" id="clock"></button><!--APPLETS-->
+</script><button class="applet" id="clock"></button>
+<script>
+(function () {
+	'use strict';
+	
+	const { getAPI, $ } = require('./client-utils.js');
+	const $clock = $('#clock');
+
+	getAPI('clock').then(clock => {
+		clock.time().listen(time => $clock.textContent = time);
+	});
+}());
+</script><!--APPLETS-->
 	<script>
 		const {ipcRenderer} = require('electron');
 		const emit = (event, data) => ipcRenderer.send(event, data);

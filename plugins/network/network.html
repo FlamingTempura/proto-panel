@@ -6,5 +6,13 @@
 	</div>
 </button>
 <script>
-	document.getElementById('network').onclick = () => emit('network:menu');
+(function () {
+	'use strict';
+
+	const { getAPI, $ } = require('./client-utils.js');
+
+	getAPI('audio').then(audio => {
+		$('#audio').addEventListener('click', () => audio.openMenu());
+	});
+}());
 </script>

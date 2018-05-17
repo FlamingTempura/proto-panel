@@ -1,1 +1,13 @@
 <button class="applet" id="clock"></button>
+<script>
+(function () {
+	'use strict';
+	
+	const { getAPI, $ } = require('./client-utils.js');
+	const $clock = $('#clock');
+
+	getAPI('clock').then(clock => {
+		clock.time().listen(time => $clock.textContent = time);
+	});
+}());
+</script>
