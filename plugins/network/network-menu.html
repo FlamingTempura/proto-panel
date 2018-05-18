@@ -9,9 +9,13 @@
 .icon {
 	position: absolute;
 	right: 10px;
-	top: 7px;
+	top: 4px;
 	height: 22px;
 	width: 22px;
+}
+.menu .container .item.wifi {
+	padding-top: 8px;
+	padding-bottom: 7px;
 }
 .icon * {
 	position: absolute;
@@ -23,6 +27,7 @@
 .icon .status {
 	z-index: 1;
 	overflow: hidden;
+	margin-top: -1px;
 }
 .icon .status img {
 	filter: brightness(10%);
@@ -31,28 +36,47 @@
 	filter: sepia(100%) hue-rotate(-12deg) saturate(1200%);
 	z-index: 2;
 }
+#wifi-connected {
+	font-weight: bold;
+}
+.header .switch {
+	margin-top: -4px;
+	margin-right: -4px;
+}
+.menu .container .header {
+	padding-top: 8px;
+}
+.header .switch::after {
+	top: 2.7px;
+	height: 14.5px;
+}
 </style>
 </head>
 <body id="battery-dropdown" class="menu">
 	<div class="container">
-		<!-- <div class="item wifi">
-			<div class="wifi-name">Blah</div>
-			<div class="wifi-icon">
-				<img class="net-wifi inactive" src="plugins/network/net-wifi.png">
-				<div class="net-wifi-status status">
-					<img class="net-wifi-status-icon active" src="plugins/network/net-wifi.png">
-				</div>
-				<img class="net-wifi inactive" src="plugins/network/net-wifi-secure.png">
-			</div>
-		</div> -->
-		<div id="wifis"></div>
+
+		<div class="header">
+			<button id="wifi-toggle" class="switch right"></button>
+			WiFi
+		</div>
+		<div id="wifi-connected"></div>
+		<button id="wifi-disconnect" class="item">
+			Disconnect
+		</button>
+		
+		<div id="wifi-list"></div>
+		<div class="separator"></div>
+
+		<button class="item" id="network-info">
+			Connection Information
+		</button>
 		<button class="item" id="network-manager">
-			Network manager
+			Manage Networks
 		</button>
 	</div>
 
-	<template id="wifi-template">
-		<div class="item wifi">
+	<template id="item-template">
+		<button class="item wifi">
 			<div class="name"></div>
 			<div class="icon">
 				<img class="bg" src="net-wifi.png">
@@ -61,31 +85,65 @@
 				</div>
 				<img class="secure" src="net-wifi-secure.png">
 			</div>
-		</div>
+		</button>
 	</template>
-	<script>
-		const {ipcRenderer} = require('electron');
-		ipcRenderer.send('network:initiated');
-		ipcRenderer.on('network:wifis', (e, wifis) => {
-			document.querySelector(`#wifis`).innerHTML = '';
-			let template = document.querySelector('#wifi-template'),
-				name = template.content.querySelector('.name'),
-				secure = template.content.querySelector('.secure'),
-				statusOut = template.content.querySelector('.status'),
-				statusIn = template.content.querySelector('.status img');
-			wifis.forEach(wifi => {
-				name.textContent = wifi.ssid;
-				secure.style.display = wifi.security ? 'block' : 'none';
-				statusOut.style.top = `${100 - wifi.strength}%`;
-				statusIn.style.top = `${-100 + wifi.strength}%`;
-				let el = document.importNode(template.content, true);
-				el.onclick = () => ipcRenderer.send(`network:wifi`, wifi.ssid);
-				document.querySelector(`#wifis`).appendChild(el);
+</body>
+<script>
+'use strict';
+
+const { getAPI, $, $$, log } = require('../../client-utils.js');
+
+getAPI('network').then(network => {
+	let $itemTemplate = $('#item-template'),
+		$list = $(`#wifi-list`),
+		$connected = $(`#wifi-connected`),
+		$disconnect = $(`#wifi-disconnect`),
+		$toggleWifi = $('#wifi-toggle');
+
+	network.listenWifiNetworks().listen(wifis => {
+		$toggleWifi.classList.toggle('on', wifis !== null);
+		if (wifis === null) { wifis = []; }
+		[$$('.item', $connected), $$('.item', $list)].forEach(list => {
+			list.forEach($el => {
+				let wifi = wifis.find(d => d.idHash === $el.getAttribute('id'));
+				if (!wifi) {
+					log('rm', $el.getAttribute('id'));
+					try { $list.removeChild($el); } catch (e) {}
+					try { $connected.removeChild($el); } catch (e) {}
+				}
 			});
 		});
-			
-		document.getElementById('network-manager').onclick = () => ipcRenderer.send('network:manager');
+		wifis.forEach(wifi => {
+			let $el = $(`#${wifi.idHash}`);
+			if (!$el) {
+				let $new = document.importNode($itemTemplate.content, true);
+				$el = $('.item', $new);
+				$el.setAttribute('id', wifi.idHash);
+				//$el.addEventListener('click', () => network.connect(wifi.ssid));
+				$('.name', $el).textContent = wifi.ssid;
+				$list.appendChild($new);
+			}
+			//$('.tick', $el).style.visibility = wifi.active ? 'visible' : 'hidden';
+			$('.secure', $el).style.display = wifi.security ? 'block' : 'none';
+			$('.status img', $el).style.top = `${100 - wifi.strength}%`;
+			$('.status img', $el).style.height = `${wifi.strength}%`;
+			$('.status img', $el).style.left = `${(100 - wifi.strength) / 2}%`;
+			$('.status img', $el).style.width = `${wifi.strength}%`;
+			//log('reordering', wifi.ssid);
+			try { $list.removeChild($el); } catch (e) {}
+			try { $connected.removeChild($el); } catch (e) {}
+			if (wifi.connected) {
+				$connected.appendChild($el);
+			} else {
+				$list.appendChild($el);
+			}
+		});
+		$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'hidden';
+	});
 
-	</script>
-</body>
+	$('#network-manager').addEventListener('click', () => network.openManager());
+	$disconnect.addEventListener('click', () => network.disconnect());
+	$toggleWifi.addEventListener('click', () => network.toggleWifi());
+});
+</script>
 </html>

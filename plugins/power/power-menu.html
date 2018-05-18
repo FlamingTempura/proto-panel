@@ -11,62 +11,49 @@
 		<!-- <div class="item">
 			Usage graph
 		</div> -->
+		<div class="separator"></div>
+		<div class="header">Display Brightness</div>
 		<div class="item">
-			Brightness
 			<div id="brightness-slider" class="slider">
 				<div class="bar"></div>
 				<div class="bar-active"></div>
-				<div class="handle"></div>
+				<button class="handle"></button>
 			</div>
 		</div>
+		<div class="separator"></div>
 		<button class="item" id="power-manager">
 			Power settings
 		</button>
 	</div>
-	<script>
-	'use strict';
-	const {ipcRenderer} = require('electron');
-	const log = (...msg) => {
-		ipcRenderer.send('log', msg);
-	};
-	try {
-		const $ = selector => document.querySelector(selector);
-		ipcRenderer.on('power.battery', (e, battery) => {
-			document.querySelector('#battery-summary').textContent = battery.charging ?
-				`${battery.percent}% charging` :
-				`${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
-		});
-		document.querySelector('#power-manager').onclick = () => ipcRenderer.send('power.manager');
-		ipcRenderer.send('power.initiated');
+<script>
+'use strict';
 
-		let slider = $('#brightness-slider'),
-			handle = $('#brightness-slider .handle'),
-			barActive = $('#brightness-slider .bar-active'),
-			sliderWidth = slider.offsetWidth - handle.offsetWidth + 2,
-			handleOffset = handle.offsetWidth / 2 - 2,
-			offset = -slider.offsetLeft - handleOffset,
-			mousedown;
-		log(offset);
-		slider.addEventListener('mousedown', () => mousedown = true);
-		window.addEventListener('mouseup', () => mousedown = false);
-		window.addEventListener('mousemove', e => {
-			if (!mousedown) { return; }
-			let x = Math.min(sliderWidth, Math.max(0, e.pageX + offset));
-			let val = x / sliderWidth;
-			handle.style.left = x + 'px';
-			barActive.style.width = x + 'px';
-			log(val * 100);
-			ipcRenderer.send('power.setBrightness', val);
+const { getAPI, $, createSlider, log } = require('../../client-utils.js');
+
+getAPI('power').then(power => {
+
+	power.battery().listen(battery => {
+		$('#battery-summary').textContent = battery.charging ?
+			`${battery.percent}% charging` :
+			`${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
+	});
+
+	
+	$('#power-manager').onclick = () => power.openPowerManager();
+	
+	let $slider = $('#brightness-slider');
+	power.getMaxBrightness().then(maxBrightness => {
+		log('max', maxBrightness)
+		createSlider($slider, 0, maxBrightness);
+		$slider.addEventListener('change', () => {
+			power.setBrightness(Math.round($slider.getValue()));
 		});
-		ipcRenderer.on('power.getBrightness', (e, brightness) => {
-			if (mousedown) { return; }
-			let x = brightness * sliderWidth;
-			handle.style.left = x + 'px';
-			barActive.style.width = x + 'px';
+		power.brightness().listen(brightness => {
+			$slider.setValue(brightness);
+			log('boo', brightness)
 		});
-	} catch (e) {
-		log(e.message);
-	}
-	</script>
+	});
+});
+</script>
 </body>
 </html>>

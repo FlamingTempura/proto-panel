@@ -7,5 +7,23 @@
 	<img id="bat-critical" class="black" src="plugins/power/bat-critical.png">	
 </button>
 <script>
-	document.getElementById('power').onclick = () => emit('power.menu');
+(function () {
+	'use strict';
+
+	const { getAPI, $ } = require('./client-utils.js');
+
+	getAPI('power').then(power => {
+		$('#power').addEventListener('click', () => power.openMenu());
+		power.battery().listen(battery => {
+			$('#power').title = battery.charging ? `${battery.percent}% charging` : `${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
+			$('#bat-bg').className = !battery.charging && battery.percent < 10 ? 'red' : 'inactive';
+			$('#bat-status').style.top = `${100 - battery.percent}%`;
+			$('#bat-status-icon').style.top = `${-100 + battery.percent}%`;
+			$('#bat-charging').style.display = battery.charging ? 'block' : 'none';
+			$('#bat-critical').style.display = !battery.charging && battery.percent < 10 ? 'block' : 'none';
+		});
+
+	power.openMenu();
+	});
+}());
 </script>

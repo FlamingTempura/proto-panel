@@ -7,12 +7,29 @@
 </button>
 <script>
 (function () {
-	'use strict';
+'use strict';
 
-	const { getAPI, $ } = require('./client-utils.js');
+const { getAPI, $, log } = require('./client-utils.js');
 
-	getAPI('audio').then(audio => {
-		$('#audio').addEventListener('click', () => audio.openMenu());
+getAPI('network').then(network => {
+	$('#network').addEventListener('click', () => network.openMenu());
+
+	network.listen().listen(net => {
+		log(net);
+		$('#network').title = `${`Connected to ${net.name}` || 'Not connected'}`;
+		$('#net-none').style.display = `${!net.type ? 'block' : 'none'}`;
+		$('#net-wifi').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
+		/*$('#net-wifi-status').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
+		$('#net-wifi-status').style.top = `${100 - net.strength}%`;
+		$('#net-wifi-status-icon').style.top = `${-100 + net.strength}%`;*/
+
+		$('#net-wifi-status-icon').style.top = `${100 - net.strength}%`;
+		$('#net-wifi-status-icon').style.height = `${net.strength}%`;
+		$('#net-wifi-status-icon').style.left = `${(100 - net.strength) / 2}%`;
+		$('#net-wifi-status-icon').style.width = `${net.strength}%`;
 	});
+
+	//network.openMenu();
+});
 }());
 </script>

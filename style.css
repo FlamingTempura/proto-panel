@@ -32,6 +32,7 @@ body {
 	background: #446CB3;
 	width: 20%;
 	/*display: none;*/
+	transition: width 0.3s ease;
 }
 .slider .handle {
 	position: absolute;
@@ -41,8 +42,15 @@ body {
 	/*border: 1px solid #666;*/
 	background: linear-gradient(#fff, #eee);
 	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.2);
-	left: 19%;
+	left: 0;
 	top: 10px;
+	transition: transform 0.3s ease;
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+.slider .handle:active {
+	transition: none;
 }
 
 .switch {
@@ -55,9 +63,6 @@ body {
 	border-radius: 10px;
 	display: inline-block;
 	border: 0;
-}
-.right {
-	float: right;
 }
 .switch::after {
 	content: '';
@@ -76,6 +81,9 @@ body {
 }
 .switch.on::after {
 	transform: translateX(14px);
+}
+.right {
+	float: right;
 }
 
 /* PANEL */
@@ -121,6 +129,9 @@ body {
 #panel .status {
 	z-index: 1;
 	overflow: hidden;
+}
+#panel #net-wifi-status {
+	margin-top: -1px;
 }
 #panel #vol-status-middle {
 	z-index: 4;

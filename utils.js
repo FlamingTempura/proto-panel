@@ -1,9 +1,11 @@
 'use strict';
 
 const Bluebird = require('bluebird');
-const { execFile, spawn } = require('child_process');
+const { execFile } = require('child_process');
+const fs = require('fs');
 
-const exec = (cmd, args) => {
+const exec = (cmd, args = []) => {
+	console.log('calling', cmd, ...args)
 	return new Bluebird((resolve, reject) => {
 		execFile(cmd, args, (err, stdout, stderr) => {
 			if (err || stderr) { return reject(err || stderr); }
@@ -25,4 +27,9 @@ const parseTable = data => {
 	});
 };
 
-module.exports = { exec, parseTable };
+const watch = (file, cb) => {
+	setInterval(cb, 10000);
+	fs.watch(file, cb);
+};
+
+module.exports = { exec, parseTable, watch };

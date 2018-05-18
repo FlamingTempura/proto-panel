@@ -62,7 +62,7 @@ const createSlider = ($slider, min = 0, max = 100) => {
 		if (!mousedown) { return; }
 		let x = Math.min(sliderWidth, Math.max(0, e.pageX + offset));
 		
-		$handle.style.left = x + 'px';
+		$handle.style.transform = `translateX(${x}px)`;
 		$barActive.style.width = x + 'px';
 		
 		currVal = min + x / sliderWidth * (max - min);
@@ -71,7 +71,7 @@ const createSlider = ($slider, min = 0, max = 100) => {
 	$slider.setValue = (value) => {
 		if (mousedown) { return; }
 		let x = (value - min) / (max - min) * sliderWidth;
-		$handle.style.left = x + 'px';
+		$handle.style.transform = `translateX(${x}px)`;
 		$barActive.style.width = x + 'px';
 	};
 	$slider.getValue = () => currVal;
