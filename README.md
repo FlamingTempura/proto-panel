@@ -1,10 +1,21 @@
+# proto-panel
 
-Requirements
+A simple panel for linux desktops. It can control wifi, bluetooth, power, audio.
+
+## Requirements
 
 * bluez for bluetooth plugin
 * networkmanager for network plugin
 * pulseaudio for audio plugin
 
+## Running proto-panel
+
+```
+npm install
+npm run dev
+```
+
+## Notes
 
 To allow non-root users to change brightness (e.g. members of group wheel), in: /etc/udev/rules.d/backlight.rules:
 
