@@ -74,10 +74,10 @@ const audio = {
 		let display = electron.screen.getAllDisplays()[0];
 		let window = new electron.BrowserWindow({
 			width: 300,
-			height: 300,
+			height: 500,
 			frame: false,
 			transparent: true,
-			y: 20,
+			y: 24,
 			x: display.bounds.width - 300,
 			focusable: true,
 			resizable: false,

@@ -73,7 +73,7 @@ const power = {
 			height: 300,
 			frame: false,
 			transparent: true,
-			y: 20,
+			y: 24,
 			x: display.bounds.width - 300,
 			focusable: true,
 			resizable: false,
@@ -82,7 +82,7 @@ const power = {
 		});
 		window.setMenu(null);
 		window.loadURL(`file://${__dirname}/power-menu.html`);
-		//window.on('blur', () => window.close());
+		window.on('blur', () => window.close());
 	}
 };
 

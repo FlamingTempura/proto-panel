@@ -22,7 +22,7 @@ module.exports = {
 				height: 300,
 				frame: false,
 				transparent: true,
-				y: 20,
+				y: 24,
 				x: display.bounds.width - 300,
 				focusable: true,
 				resizable: false,
