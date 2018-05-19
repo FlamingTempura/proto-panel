@@ -84,7 +84,7 @@ body {
 }
 
 /* PANEL */
-#panel {
+body#panel {
 	white-space: nowrap;
 	text-align: right;
 	color: white;
@@ -94,32 +94,38 @@ body {
 }
 #panel .applet {
 	display: inline-block;
-	vertical-align: middle;
+	vertical-align: top;
 	position: relative;
-	min-width: 70vh;
-	height: 70vh;
-	margin: 8vh 10vh 22vh;
+	min-width: 100vh;
+	height: 100vh;
+	padding: 8vh 10vh 22vh;
 	border: none;
 	background: none;
 	color: inherit;
 	outline: none;
-	padding: 0;
 }
 #panel .applet:hover {
-	filter: brightness(50%) sepia(100%) hue-rotate(180deg) saturate(400%) brightness(200%);
+	/*filter: brightness(50%) sepia(100%) hue-rotate(180deg) saturate(400%) brightness(200%);*/
+	background: rgba(255, 255, 255, 0.2);
 }
-#panel .applet * {
+#panel .applet .icon {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+#panel .applet .icon * {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 70vh;
-	height: 70vh;
+	width: 100%;
+	height: 100%;
 }
 #panel .active {
 	filter: brightness(2000%);
 }
 #panel .inactive {
-	filter: brightness(65%);	
+	filter: brightness(2000%);
+	opacity: 0.3;
 }
 #panel .red {
 	filter: sepia(100%) hue-rotate(-42deg) saturate(1000%);
@@ -142,6 +148,7 @@ body {
 }
 #panel #vol-status-middle img {
 	top: -15vh;
+	height: 70vh;
 }
 #panel #bat-charging,
 #panel #bat-critical {
@@ -150,22 +157,27 @@ body {
 #panel #clock {
 	line-height: 50vh;
 	font-size: 50vh;
-	margin: -8vh 38vh 0 20vh;
+	padding: 0 38vh 0 20vh;
 }
 
-/* menuS */
-.menu {
+
+
+/* MENUS */
+body.menu {
 	background: transparent;
 	overflow: hidden;
 	color: black;
 	font-size: 14px;
+	text-align: right;
 }
 .menu .container {
-	margin: 0 10px 10px 10px;
+	display: inline-block;
+	margin: 0 2px 10px 10px;
 	padding: 4px 0 3px 0;
 	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.18), 0 0 4px rgba(0, 0, 0, 0.07);
 	background: white;
 	text-align: left;
+	min-width: 280px;
 	border-radius: 0 0 4px 4px;
 }
 .menu .container .item,

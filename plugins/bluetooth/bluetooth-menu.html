@@ -5,16 +5,13 @@
 </head>
 <body id="bluetooth-menu" class="menu">
 	<div class="container">
-		
-		<div class="header">
-			Paired
+		<div id="devices">
+			<div class="header">Paired</div>
+			<div id="paired-list"></div>
+			<div class="header">Available</div>
+			<div id="available-list"></div>
+			<div class="separator"></div>
 		</div>
-		<div id="paired-list"></div>
-		<div class="header">
-			Available
-		</div>
-		<div id="available-list"></div>
-		<div class="separator"></div>
 
 		<button class="item" id="bluetooth-toggle"></button>
 	</div>
@@ -33,9 +30,11 @@ getAPI('bluetooth').then(bluetooth => {
 	let $toggle = $('#bluetooth-toggle'),
 		$paired = $('#paired-list'),
 		$available = $('#available-list'),
-		$itemTemplate = $('#item-template');
+		$itemTemplate = $('#item-template'),
+		$devices = $('#devices');
 	bluetooth.listen().listen(status => {
 		$toggle.textContent = `Turn ${status.on ? 'Off' : 'On'} Bluetooth`;
+		$devices.style.display = status.on ? 'block' : 'none';
 	});
 	$toggle.addEventListener('click', () => bluetooth.toggle());
 

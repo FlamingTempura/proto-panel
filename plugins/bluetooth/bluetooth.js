@@ -81,7 +81,8 @@ const bluetooth = {
 			});
 	},
 	connect(address) {
-		return cmd(`connect ${address}`);
+		return cmdReturn(`power on`)
+			.then(() => cmdReturn(`connect ${address}`));
 	},
 	listenScan() {
 		let cb;
