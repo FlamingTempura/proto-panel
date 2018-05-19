@@ -4,7 +4,8 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body id="panel">
-	<button class="applet" id="bluetooth">
+	<div id="applets">
+		<button class="applet" id="bluetooth">
 	<img id="bluetooth-icon" class="inactive" src="plugins/bluetooth/bluetooth.png">
 	<img id="bluetooth-connected" class="active" src="plugins/bluetooth/bluetooth-connected.png">
 </button>
@@ -152,12 +153,20 @@ getAPI('network').then(network => {
 
 	getAPI('clock').then(clock => {
 		clock.time().listen(time => $clock.textContent = time);
+		$clock.addEventListener('click', () => clock.showCalendar());
 	});
 }());
 </script><!--APPLETS-->
-	<script>
-		const {ipcRenderer} = require('electron');
-		const emit = (event, data) => ipcRenderer.send(event, data);
-	</script>
+	</div>
 </body>
+<script>
+(function () {
+	'use strict';
+	const { ipcRenderer } = require('electron');
+	const { $ } = require('./client-utils');
+	setTimeout(() => {
+		ipcRenderer.send('setSize', $('#applets').offsetWidth + 100);
+	}, 2000);
+}());
+</script>
 </html>

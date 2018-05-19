@@ -6,7 +6,6 @@ const electron = require('electron');
 const chalk = require('chalk');
 
 const config = {
-	width: 740,
 	height: 22,
 	plugins: ['bluetooth', 'audio', 'network', 'power', 'clock']
 };
@@ -40,11 +39,11 @@ Bluebird
 	.then(() => {
 		let display = electron.screen.getAllDisplays()[0];
 		let window = new electron.BrowserWindow({
-			width: config.width,
+			width: 600,
 			height: config.height,
 			frame: false,
 			y: 0,
-			x: display.bounds.width - config.width,
+			x: display.bounds.width - 600,
 			alwaysOnTop: true,
 			focusable: false,
 			resizable: false,
@@ -56,6 +55,10 @@ Bluebird
 		});
 		electron.ipcMain.on('getAPI', (e, id, name) => {
 			e.sender.send(`getAPI#${id}`, Object.keys(plugins[name].api));
+		});
+		electron.ipcMain.on('setSize', (e, width) => {
+			window.setSize(width, config.height);
+			window.setPosition(display.bounds.width - width, 0);
 		});
 		Object.entries(plugins).forEach(([name, plugin]) => {
 			if (plugin.api) {

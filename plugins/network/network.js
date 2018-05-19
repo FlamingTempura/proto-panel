@@ -94,7 +94,7 @@ const network = {
 		});
 		window.setMenu(null);
 		window.loadURL(`file://${__dirname}/network-menu.html`);
-		//window.on('blur', () => window.close());
+		window.on('blur', () => window.close());
 	}
 };
 

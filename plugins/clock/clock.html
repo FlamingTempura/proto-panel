@@ -8,6 +8,7 @@
 
 	getAPI('clock').then(clock => {
 		clock.time().listen(time => $clock.textContent = time);
+		$clock.addEventListener('click', () => clock.showCalendar());
 	});
 }());
 </script>

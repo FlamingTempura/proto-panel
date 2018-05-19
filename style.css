@@ -26,13 +26,10 @@ body {
 	width: 100%;
 	left: 0;
 	top: 14px;
-	/*border: 1px solid #555;*/
 }
 .slider .bar-active {
-	/*background: linear-gradient(#3498DB, #446CB3);*/
 	background: #446CB3;
 	width: 20%;
-	/*display: none;*/
 	transition: width 0.3s ease;
 }
 .slider .handle {
@@ -40,7 +37,6 @@ body {
 	height: 12px;
 	width: 13px;
 	border-radius: 50%;
-	/*border: 1px solid #666;*/
 	background: linear-gradient(#fff, #eee);
 	box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.7), 0 0 2px rgba(0, 0, 0, 0.2);
 	left: 0;
@@ -93,6 +89,9 @@ body {
 	text-align: right;
 	color: white;
 }
+#panel #applets {
+	display: inline-block;
+}
 #panel .applet {
 	display: inline-block;
 	vertical-align: middle;
@@ -106,7 +105,9 @@ body {
 	outline: none;
 	padding: 0;
 }
-#panel .applet:hover {}
+#panel .applet:hover {
+	filter: brightness(50%) sepia(100%) hue-rotate(180deg) saturate(400%) brightness(200%);
+}
 #panel .applet * {
 	position: absolute;
 	top: 0;
