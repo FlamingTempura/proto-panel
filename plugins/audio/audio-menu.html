@@ -14,7 +14,7 @@
 			<div id="sink-volume" class="slider">
 				<div class="bar"></div>
 				<div class="bar-active"></div>
-				<div class="handle"></div>
+				<button class="handle"></button>
 			</div>
 			<button id="sink-toggle" class="switch right"></button>
 		</div>
@@ -29,7 +29,7 @@
 			<div id="source-volume" class="slider">
 				<div class="bar"></div>
 				<div class="bar-active"></div>
-				<div class="handle"></div>
+				<button class="handle"></button>
 			</div>
 			<button id="source-toggle" class="switch right"></button>
 		</div>
@@ -51,7 +51,7 @@
 <script>
 'use strict';
 
-const { getAPI, $, $$, createSlider, log } = require('../../client-utils.js');
+const { getAPI, $, $$, createSlider } = require('../../client-utils.js');
 
 getAPI('audio').then(audio => {
 	let $itemTemplate = $('#item-template');
@@ -61,19 +61,15 @@ getAPI('audio').then(audio => {
 			$list = $(`#${type}-list`),
 			activeDevice;
 		audio.listen(type).listen(devices => {
-			log('REDRAW');
 			activeDevice = devices.find(d => d.active);
-			$$('.item', $list).forEach($el => {
-				let device = devices.find(d => d.idHash === $el.getAttribute('id'));
-				if (!device) {
-					log('rm', $el.getAttribute('id'));
+			$$('.item', $list).forEach($el => { // remove old devices
+				if (!devices.find(d => d.idHash === $el.getAttribute('id'))) {
 					$list.removeChild($el);
 				}
 			});
-			devices.forEach(device => {
+			devices.forEach(device => { // add / update devices
 				let $el = $(`#${device.idHash}`);
 				if (!$el) {
-					log('NEW EL', type);
 					let $new = document.importNode($itemTemplate.content, true);
 					$el = $('.item', $new);
 					$el.setAttribute('id', device.idHash);

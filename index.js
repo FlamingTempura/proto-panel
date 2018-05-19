@@ -3,14 +3,12 @@
 const Bluebird = require('bluebird');
 const fs = Bluebird.promisifyAll(require('fs'));
 const electron = require('electron');
-const path = require('path');
-const url = require('url');
 const chalk = require('chalk');
 
 const config = {
 	width: 740,
 	height: 22,
-	plugins: ['audio', 'network', 'power', 'clock']
+	plugins: ['bluetooth', 'audio', 'network', 'power', 'clock']
 };
 
 const plugins = {};
@@ -46,11 +44,12 @@ Bluebird
 			height: config.height,
 			frame: false,
 			y: 0,
-			x: display.bounds.width - config.width -400,
+			x: display.bounds.width - config.width,
 			alwaysOnTop: true,
 			focusable: false,
 			resizable: false,
-			thickFrame: true
+			thickFrame: true,
+			transparent: true
 		});
 		electron.ipcMain.on('log', (e, msg) => {
 			console.log(chalk.cyan.bold('client:'), ...msg);
@@ -63,7 +62,16 @@ Bluebird
 				Object.entries(plugin.api).forEach(([k, fn]) => {
 					electron.ipcMain.on(`${name}.${k}`, (e, id, ...args) => {
 						let data = fn(...args),
-							cb = data => e.sender.send(`${name}.${k}#${id}`, data);
+							cb = data => {
+								try {
+									e.sender.send(`${name}.${k}#${id}`, data);
+								} catch (e) {
+									// sender has gone (window has been closed)
+									if (data.stopListening) {
+										data.stopListening();
+									}
+								}
+							};
 						if (data && data.listen) {
 							data.listen(cb);
 						} else if (data && data.then) {

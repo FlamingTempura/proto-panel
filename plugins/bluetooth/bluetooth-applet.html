@@ -1,0 +1,23 @@
+<button class="applet" id="bluetooth">
+	<img id="bluetooth-icon" class="inactive" src="plugins/bluetooth/bluetooth.png">
+	<img id="bluetooth-connected" class="active" src="plugins/bluetooth/bluetooth-connected.png">
+</button>
+<script>
+(function () {
+	'use strict';
+
+	const { getAPI, $, log } = require('./client-utils.js');
+
+	getAPI('bluetooth').then(bluetooth => {
+		$('#bluetooth').addEventListener('click', () => bluetooth.openMenu());
+		bluetooth.listen().listen(status => {
+			//log(status);
+			$('#bluetooth-icon').className = status.on ? 'active' : 'inactive';
+			$('#bluetooth-icon').style.display = status.connected ? 'none' : 'block';
+			$('#bluetooth-connected').style.display = status.connected ? 'block' : 'none';
+		});
+
+		//bluetooth.openMenu();
+	});
+}());
+</script>

@@ -1,4 +1,4 @@
-<button class="applet" id="network" onclick="click('network:menu')">
+<button class="applet" id="network">
 	<img id="net-none" class="active" src="plugins/network/net-none.png">
 	<img id="net-wifi" class="inactive" src="plugins/network/net-wifi.png">
 	<div id="net-wifi-status" class="status">
@@ -15,14 +15,9 @@ getAPI('network').then(network => {
 	$('#network').addEventListener('click', () => network.openMenu());
 
 	network.listen().listen(net => {
-		log(net);
 		$('#network').title = `${`Connected to ${net.name}` || 'Not connected'}`;
 		$('#net-none').style.display = `${!net.type ? 'block' : 'none'}`;
 		$('#net-wifi').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
-		/*$('#net-wifi-status').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
-		$('#net-wifi-status').style.top = `${100 - net.strength}%`;
-		$('#net-wifi-status-icon').style.top = `${-100 + net.strength}%`;*/
-
 		$('#net-wifi-status-icon').style.top = `${100 - net.strength}%`;
 		$('#net-wifi-status-icon').style.height = `${net.strength}%`;
 		$('#net-wifi-status-icon').style.left = `${(100 - net.strength) / 2}%`;

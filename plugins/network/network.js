@@ -29,7 +29,7 @@ const network = {
 			listen(cb) {
 				setInterval(() => {
 					network.netStatus().then(cb);
-				}, 1000);
+				}, 10000);
 				network.netStatus().then(cb);
 			}
 		};

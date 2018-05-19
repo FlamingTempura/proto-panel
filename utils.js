@@ -27,8 +27,59 @@ const parseTable = data => {
 	});
 };
 
-const watch = (file, cb) => {
-	setInterval(cb, 10000);
+const watcha = (file, cb, poll) => {
+	if (poll) {
+		let prev;
+		setInterval(() => {
+			fs.statAsync(file)
+				.then(stat => {
+					console.log(stat)
+					if (stat.mtimeMs !== prev) {
+						prev = stat.mtimeMs;
+						cb();
+					}
+				});
+		}, poll);
+		//fs.watchFile(file, { interval: poll }, cb); // stat polling
+	}
+	fs.watch(file, cb);
+};
+
+const watchb = (file, cb, poll) => {
+	if (poll) {
+		let prev;
+		setInterval(() => {
+			fs.readFileAsync(file, 'utf8')
+				.then(contents => {
+					if (contents !== prev) {
+						prev = contents;
+						cb();
+					}
+				});
+		}, poll);
+		//fs.watchFile(file, { interval: poll }, cb); // stat polling
+	}
+	fs.watch(file, cb);
+};
+
+
+const watch = (file, cb, poll) => {
+	if (poll) {
+		let prev;
+		let buffer = new Buffer(1);
+		fs.open(file, 'r', (status, fd) => {
+			setInterval(() => {
+				fs.read(fd, buffer, 0, 1, 0, () => {
+					let contents = buffer.toString('utf8');
+					if (contents !== prev) {
+						prev = contents;
+						cb();
+					}
+				});
+			}, poll);
+		});
+		//fs.watchFile(file, { interval: poll }, cb); // stat polling
+	}
 	fs.watch(file, cb);
 };
 

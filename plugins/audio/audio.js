@@ -49,7 +49,7 @@ const audio = {
 	},
 	listen(type) {
 		let cb, prevData;
-		pactl.on('data', data => {
+		let newData = data => {
 			if (data.toString().includes(`'change' on ${type}`)) {
 				audio.getDevices(type)
 					.then(data => {
@@ -59,9 +59,13 @@ const audio = {
 						}
 					});
 			}
-		});
+		};
+		pactl.on('data', newData);
 		audio.getDevices(type).then((data) => cb(data));
-		return { listen: _cb => cb = _cb };
+		return {
+			listen: _cb => cb = _cb,
+			stopListening: () => pactl.removeListener('data', newData)
+		};
 	},
 	openMixer() {
 		return exec('pavucontrol');

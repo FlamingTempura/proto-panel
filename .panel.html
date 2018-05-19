@@ -4,7 +4,29 @@
 	<link rel="stylesheet" href="style.css">
 </head>
 <body id="panel">
-	<button class="applet" id="audio">
+	<button class="applet" id="bluetooth">
+	<img id="bluetooth-icon" class="inactive" src="plugins/bluetooth/bluetooth.png">
+	<img id="bluetooth-connected" class="active" src="plugins/bluetooth/bluetooth-connected.png">
+</button>
+<script>
+(function () {
+	'use strict';
+
+	const { getAPI, $, log } = require('./client-utils.js');
+
+	getAPI('bluetooth').then(bluetooth => {
+		$('#bluetooth').addEventListener('click', () => bluetooth.openMenu());
+		bluetooth.listen().listen(status => {
+			//log(status);
+			$('#bluetooth-icon').className = status.on ? 'active' : 'inactive';
+			$('#bluetooth-icon').style.display = status.connected ? 'none' : 'block';
+			$('#bluetooth-connected').style.display = status.connected ? 'block' : 'none';
+		});
+
+		//bluetooth.openMenu();
+	});
+}());
+</script><button class="applet" id="audio">
 	<img id="vol-bg" class="inactive" src="plugins/audio/vol.png">
 	<img id="vol-mute" class="inactive" src="plugins/audio/vol-mute.png">
 	<div id="vol-status" class="status">
@@ -54,7 +76,7 @@
 		});
 	});
 }());
-</script><button class="applet" id="network" onclick="click('network:menu')">
+</script><button class="applet" id="network">
 	<img id="net-none" class="active" src="plugins/network/net-none.png">
 	<img id="net-wifi" class="inactive" src="plugins/network/net-wifi.png">
 	<div id="net-wifi-status" class="status">
@@ -71,14 +93,9 @@ getAPI('network').then(network => {
 	$('#network').addEventListener('click', () => network.openMenu());
 
 	network.listen().listen(net => {
-		log(net);
 		$('#network').title = `${`Connected to ${net.name}` || 'Not connected'}`;
 		$('#net-none').style.display = `${!net.type ? 'block' : 'none'}`;
 		$('#net-wifi').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
-		/*$('#net-wifi-status').style.display = `${net.type === 'wifi' ? 'block' : 'none'}`;
-		$('#net-wifi-status').style.top = `${100 - net.strength}%`;
-		$('#net-wifi-status-icon').style.top = `${-100 + net.strength}%`;*/
-
 		$('#net-wifi-status-icon').style.top = `${100 - net.strength}%`;
 		$('#net-wifi-status-icon').style.height = `${net.strength}%`;
 		$('#net-wifi-status-icon').style.left = `${(100 - net.strength) / 2}%`;
@@ -88,7 +105,7 @@ getAPI('network').then(network => {
 	//network.openMenu();
 });
 }());
-</script><button class="applet" id="power" onclick="click('power:menu')">
+</script><button class="applet" id="power">
 	<img id="bat-bg" class="inactive" src="plugins/power/bat.png">
 	<div id="bat-status" class="status">
 		<img id="bat-status-icon" class="active" src="plugins/power/bat.png">
@@ -105,7 +122,16 @@ getAPI('network').then(network => {
 	getAPI('power').then(power => {
 		$('#power').addEventListener('click', () => power.openMenu());
 		power.battery().listen(battery => {
-			$('#power').title = battery.charging ? `${battery.percent}% charging` : `${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
+			let remaining = isNaN(Number(battery.minutes)) ? '' : battery.hours ?
+				`${battery.hours} hours and ${battery.minutes} minutes` :
+				`${battery.minutes} minutes`;
+
+			$('#power').title = battery.charging ?
+				battery.percent === 100 ?
+					'Plugged in. Battery is fully charged.' : 
+					`Plugged in. Battery is ${battery.percent}% charged. ${remaining ? `About ${remaining} until charged.` : ''}` :
+				`${battery.percent}% battery remaining. ${remaining ? `About ${remaining}.` : ''}`;
+
 			$('#bat-bg').className = !battery.charging && battery.percent < 10 ? 'red' : 'inactive';
 			$('#bat-status').style.top = `${100 - battery.percent}%`;
 			$('#bat-status-icon').style.top = `${-100 + battery.percent}%`;
@@ -113,7 +139,7 @@ getAPI('network').then(network => {
 			$('#bat-critical').style.display = !battery.charging && battery.percent < 10 ? 'block' : 'none';
 		});
 
-	power.openMenu();
+	//power.openMenu();
 	});
 }());
 </script><button class="applet" id="clock"></button>

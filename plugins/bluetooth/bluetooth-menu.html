@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" href="../../style.css">
+</head>
+<body id="bluetooth-menu" class="menu">
+	<div class="container">
+		
+		<div class="header">
+			Paired
+		</div>
+		<div id="paired-list"></div>
+		<div class="header">
+			Available
+		</div>
+		<div id="available-list"></div>
+		<div class="separator"></div>
+
+		<button class="item" id="bluetooth-toggle"></button>
+	</div>
+	<template id="item-template">
+		<button class="item">
+			<span class="name"></span>
+		</button>
+	</template>
+</body>
+<script>
+'use strict';
+
+const { getAPI, $, $$, log } = require('../../client-utils.js');
+
+getAPI('bluetooth').then(bluetooth => {
+	let $toggle = $('#bluetooth-toggle'),
+		$paired = $('#paired-list'),
+		$available = $('#available-list'),
+		$itemTemplate = $('#item-template');
+	bluetooth.listen().listen(status => {
+		$toggle.textContent = `Turn ${status.on ? 'Off' : 'On'} Bluetooth`;
+	});
+	$toggle.addEventListener('click', () => bluetooth.toggle());
+
+	bluetooth.listenScan().listen(devices => {
+		[$$('.item', $paired), $$('.item', $available)].forEach(list => {
+			list.forEach($el => {
+				let wifi = devices.find(d => d.idHash === $el.getAttribute('id'));
+				if (!wifi) {
+					log('rm', $el.getAttribute('id'));
+					try { $paired.removeChild($el); } catch (e) {}
+					try { $available.removeChild($el); } catch (e) {}
+				}
+			});
+		});
+		devices.forEach(device => {
+			let $el = $(`#${device.idHash}`);
+			if (!$el) {
+				let $new = document.importNode($itemTemplate.content, true);
+				$el = $('.item', $new);
+				$el.setAttribute('id', device.idHash);
+				$el.addEventListener('click', () => bluetooth.connect(device.address));
+				$('.name', $el).textContent = device.name;
+			}
+			
+			try { $paired.removeChild($el); } catch (e) {}
+			try { $available.removeChild($el); } catch (e) {}
+			if (device.paired) {
+				$paired.appendChild($el);
+			} else {
+				$available.appendChild($el);
+			}
+		});
+		//$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'hidden';
+	});
+});
+</script>
+</html>

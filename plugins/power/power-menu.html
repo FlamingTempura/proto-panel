@@ -28,29 +28,31 @@
 <script>
 'use strict';
 
-const { getAPI, $, createSlider, log } = require('../../client-utils.js');
+const { getAPI, $, createSlider } = require('../../client-utils.js');
 
 getAPI('power').then(power => {
 
 	power.battery().listen(battery => {
-		$('#battery-summary').textContent = battery.charging ?
-			`${battery.percent}% charging` :
-			`${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
+		let remaining = isNaN(Number(battery.minutes)) ? '' : battery.hours ?
+			`${battery.hours} hours and ${battery.minutes} minutes` :
+			`${battery.minutes} minutes`;
+		$('#battery-summary').innerHTML = battery.charging ?
+			battery.percent === 100 ?
+				'Plugged in. Battery is fully charged.' : 
+				`Plugged in. Battery is ${battery.percent}% charged. ${remaining ? `<br>About ${remaining} until charged.` : ''}` :
+			`${battery.percent}% battery remaining. ${remaining ? `<br>About ${remaining}.` : ''}`;
 	});
-
 	
 	$('#power-manager').onclick = () => power.openPowerManager();
 	
 	let $slider = $('#brightness-slider');
 	power.getMaxBrightness().then(maxBrightness => {
-		log('max', maxBrightness)
 		createSlider($slider, 0, maxBrightness);
 		$slider.addEventListener('change', () => {
 			power.setBrightness(Math.round($slider.getValue()));
 		});
 		power.brightness().listen(brightness => {
 			$slider.setValue(brightness);
-			log('boo', brightness)
 		});
 	});
 });

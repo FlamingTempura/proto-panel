@@ -1,4 +1,4 @@
-<button class="applet" id="power" onclick="click('power:menu')">
+<button class="applet" id="power">
 	<img id="bat-bg" class="inactive" src="plugins/power/bat.png">
 	<div id="bat-status" class="status">
 		<img id="bat-status-icon" class="active" src="plugins/power/bat.png">
@@ -15,7 +15,16 @@
 	getAPI('power').then(power => {
 		$('#power').addEventListener('click', () => power.openMenu());
 		power.battery().listen(battery => {
-			$('#power').title = battery.charging ? `${battery.percent}% charging` : `${battery.hours} hours and ${battery.minutes} minutes remaining (${battery.percent}%)`;
+			let remaining = isNaN(Number(battery.minutes)) ? '' : battery.hours ?
+				`${battery.hours} hours and ${battery.minutes} minutes` :
+				`${battery.minutes} minutes`;
+
+			$('#power').title = battery.charging ?
+				battery.percent === 100 ?
+					'Plugged in. Battery is fully charged.' : 
+					`Plugged in. Battery is ${battery.percent}% charged. ${remaining ? `About ${remaining} until charged.` : ''}` :
+				`${battery.percent}% battery remaining. ${remaining ? `About ${remaining}.` : ''}`;
+
 			$('#bat-bg').className = !battery.charging && battery.percent < 10 ? 'red' : 'inactive';
 			$('#bat-status').style.top = `${100 - battery.percent}%`;
 			$('#bat-status-icon').style.top = `${-100 + battery.percent}%`;
@@ -23,7 +32,7 @@
 			$('#bat-critical').style.display = !battery.charging && battery.percent < 10 ? 'block' : 'none';
 		});
 
-	power.openMenu();
+	//power.openMenu();
 	});
 }());
 </script>

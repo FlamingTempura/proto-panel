@@ -121,7 +121,6 @@ getAPI('network').then(network => {
 				$el.setAttribute('id', wifi.idHash);
 				//$el.addEventListener('click', () => network.connect(wifi.ssid));
 				$('.name', $el).textContent = wifi.ssid;
-				$list.appendChild($new);
 			}
 			//$('.tick', $el).style.visibility = wifi.active ? 'visible' : 'hidden';
 			$('.secure', $el).style.display = wifi.security ? 'block' : 'none';
