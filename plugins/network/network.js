@@ -45,7 +45,7 @@ const network = {
 			listen(cb) {
 				setInterval(() => {
 					network.getWifiNetworks().then(cb);
-				}, 1000);
+				}, 10000);
 				network.getWifiNetworks().then(cb);
 			}
 		};

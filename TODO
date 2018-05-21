@@ -1,0 +1,75 @@
+TODO:
+* autosize panel
+* battery chart
+* wifi connect
+* wifi disconnect
+* preload menus
+* wifi watch
+* brightness permissions
+
+
+=== AUDIO ===
+Output:
+[volume slider] [on/off]
+✓ Source 1
+  Source 2
+  Source 3
+----------
+Input
+[volume slider] [on/off]
+✓ Sink 1
+  Sink 2
+  Sink 3
+----------
+Mixer
+
+=== NETWORK ===
+Active WiFi
+Disconnect WiFi
+----------
+INTEL BLAH  [On/Off]
+WiFi 1
+  connected
+  IP
+  [Disconnect]
+WiFi 2 
+  known
+WiFi 3
+WiFi 4
+WiFi 5
+More networks ->
+	Wifi 6
+	Wifi 7
+	...
+Rescan
+----------
+VPN ->
+	Active VPN
+	Disconnect VPN
+	----------
+	VPN1
+	VPN2
+	VPN3
+----------
+Turn Networking On/Off
+Connection Information
+Network Manager
+
+Todo: Mobile broadband, wifi hotspot, ethernet
+
+=== BLUETOOTH ===
+#Devices
+Device 1
+Device 2
+Device 3
+---------
+Turn Bluetooth On/Off
+Bluetooth Manager
+
+=== POWER ===
+Battery summary
+-----------
+Display Brightness
+[slider]
+----------
+Power Manager

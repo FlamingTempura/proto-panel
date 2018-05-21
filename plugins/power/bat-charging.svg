@@ -16,7 +16,7 @@
    id="svg8"
    inkscape:version="0.92.2 2405546, 2018-03-11"
    sodipodi:docname="bat-charging.svg"
-   inkscape:export-filename="/home/peter/simple-panel/icons/bat-charging.png"
+   inkscape:export-filename="/home/peter/simple-panel/plugins/power/bat.png"
    inkscape:export-xdpi="59.110001"
    inkscape:export-ydpi="59.110001">
   <defs
@@ -29,7 +29,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="-130.01106"
+     inkscape:cx="-113.22534"
      inkscape:cy="433.48685"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -53,7 +53,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -63,12 +63,14 @@
      id="layer1"
      transform="translate(-67.090775,-40.525283)">
     <path
-       style="fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.10630728px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 212.84019,100.5076 -48.5831,0.0895 -27.17978,66.22336 28.22527,0.027 -27.78477,81.07544 84.08611,-100.84997 -38.82931,0.40562 z"
-       id="path4646"
-       inkscape:connector-curvature="0"
-       inkscape:export-xdpi="59.110001"
-       inkscape:export-ydpi="59.110001"
-       sodipodi:nodetypes="cccccccc" />
+       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:3.05844998;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 314.86914 85.498047 C 310.56864 85.498047 307.10742 88.959269 307.10742 93.259766 L 307.10742 160.89844 L 217.4668 160.89844 C 215.00521 160.89844 213.02344 162.88021 213.02344 165.3418 L 213.02344 742.62305 C 213.02344 745.08463 215.00521 747.06641 217.4668 747.06641 L 626.39062 747.06641 C 628.85221 747.06641 630.83398 745.08463 630.83398 742.62305 L 630.83398 165.3418 C 630.83398 162.88021 628.85221 160.89844 626.39062 160.89844 L 536.75 160.89844 L 536.75 93.259766 C 536.75 88.959269 533.28878 85.498047 528.98828 85.498047 L 314.86914 85.498047 z M 528.41602 228.04102 L 437.64844 371.88477 L 554.87305 370.64258 L 301.01758 679.48633 L 384.90039 431.20117 L 299.6875 431.11914 L 381.74414 228.31445 L 528.41602 228.04102 z "
+       transform="matrix(0.26458333,0,0,0.26458333,67.090775,40.525283)"
+       id="rect3713" />
+    <g
+       transform="matrix(0.79877427,0,0,0.81026231,36.889347,19.423689)"
+       id="layer1-3"
+       inkscape:label="Layer 1"
+       style="fill:#ccff00" />
   </g>
 </svg>

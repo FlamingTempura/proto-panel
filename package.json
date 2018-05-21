@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron . --enable-transparent-visuals --disable-gpu --enable-logging",
-    "dev": "nodemon -e js,html,png,css --exec npm run start"
+    "dev": "nodemon -e js,html,svg,css --exec npm run start"
   },
   "author": "",
   "license": "ISC",

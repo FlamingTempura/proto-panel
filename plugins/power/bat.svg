@@ -16,7 +16,7 @@
    id="svg8"
    inkscape:version="0.92.2 2405546, 2018-03-11"
    sodipodi:docname="bat.svg"
-   inkscape:export-filename="/home/peter/simple-panel/icons/bat.png"
+   inkscape:export-filename="/home/peter/simple-panel/plugins/power/bat.png"
    inkscape:export-xdpi="59.110001"
    inkscape:export-ydpi="59.110001">
   <defs
@@ -29,7 +29,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="73.56037"
+     inkscape:cx="-113.22534"
      inkscape:cy="433.48685"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -63,20 +63,20 @@
      id="layer1"
      transform="translate(-67.090775,-40.525283)">
     <rect
-       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.87597054;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.80921489;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect3713"
-       width="126.79829"
-       height="158.43924"
-       x="115.3269"
-       y="79.747124"
-       ry="1.2010088" />
+       width="110.54531"
+       height="155.09026"
+       x="123.45338"
+       y="83.0961"
+       ry="1.1756227" />
     <rect
-       ry="2.098213"
-       y="59.36689"
-       x="143.87955"
-       height="158.43924"
-       width="69.692963"
+       ry="2.0538623"
+       y="63.146652"
+       x="148.34616"
+       height="155.09026"
+       width="60.759735"
        id="rect3717"
-       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.64942247;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+       style="opacity:1;fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.59993148;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
 </svg>
