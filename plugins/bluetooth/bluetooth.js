@@ -35,9 +35,11 @@ const bluetooth = {
 			}
 		};
 		bluetoothctl.stdout.on('data', newData);
-		bluetooth.status().then(status => cb(status));
 		return {
-			listen: _cb => cb = _cb,
+			listen: _cb => {
+				cb = _cb;
+				bluetooth.status().then(status => cb(status));
+			},
 			stopListening: () => bluetoothctl.stdout.removeListener('data', newData)
 		};
 	},

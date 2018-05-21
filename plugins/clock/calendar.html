@@ -121,7 +121,6 @@ const renderMonth = date_ => {
 	// now increment the date until reaching the first monday of the next month
 	// (month + 1) % 12 wraps the date (so 13 => 2)
 	while (date.getMonth() !== (month + 1) % 12 || date.getDay() !== 1) {
-		log(date.toISOString());
 		let $day = document.createElement('div'),
 			isToday = date.getDate() === today.getDate() &&
 				date.getMonth() === today.getMonth() && 

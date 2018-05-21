@@ -48,7 +48,9 @@ Bluebird
 			focusable: false,
 			resizable: false,
 			thickFrame: true,
-			transparent: true
+			transparent: true,
+			webPreferences: {
+			}
 		});
 		electron.ipcMain.on('log', (e, msg) => {
 			console.log(chalk.cyan.bold('client:'), ...msg);
@@ -65,9 +67,9 @@ Bluebird
 				Object.entries(plugin.api).forEach(([k, fn]) => {
 					electron.ipcMain.on(`${name}.${k}`, (e, id, ...args) => {
 						let data = fn(...args),
-							cb = data => {
+							cb = result => {
 								try {
-									e.sender.send(`${name}.${k}#${id}`, data);
+									e.sender.send(`${name}.${k}#${id}`, result);
 								} catch (e) {
 									// sender has gone (window has been closed)
 									if (data.stopListening) {

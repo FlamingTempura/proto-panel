@@ -50,6 +50,10 @@
 	top: 2.7px;
 	height: 14.5px;
 }
+#wifi-disconnect {
+	text-indent: 12px;
+	color: #999;
+}
 </style>
 </head>
 <body id="battery-dropdown" class="menu">
@@ -59,12 +63,17 @@
 			<button id="wifi-toggle" class="switch right"></button>
 			WiFi
 		</div>
-		<div id="wifi-connected"></div>
-		<button id="wifi-disconnect" class="item">
-			Disconnect
-		</button>
-		
-		<div id="wifi-list"></div>
+		<div id="wifi-list">
+			<div id="wifi-connected"></div>
+			<button id="wifi-disconnect" class="item">
+				Disconnect
+			</button>
+			
+			<div id="wifi-known"></div>
+
+			<div class="header">Other available networks</div>
+			<div id="wifi-unknown"></div>
+		</div>
 		<div class="separator"></div>
 
 		<button class="item" id="network-info">
@@ -95,7 +104,8 @@ const { getAPI, $, $$, log } = require('../../client-utils.js');
 
 getAPI('network').then(network => {
 	let $itemTemplate = $('#item-template'),
-		$list = $(`#wifi-list`),
+		$known = $(`#wifi-known`),
+		$unknown = $(`#wifi-unknown`),
 		$connected = $(`#wifi-connected`),
 		$disconnect = $(`#wifi-disconnect`),
 		$toggleWifi = $('#wifi-toggle');
@@ -103,12 +113,13 @@ getAPI('network').then(network => {
 	network.listenWifiNetworks().listen(wifis => {
 		$toggleWifi.classList.toggle('on', wifis !== null);
 		if (wifis === null) { wifis = []; }
-		[$$('.item', $connected), $$('.item', $list)].forEach(list => {
+		[$$('.item', $connected), $$('.item', $known), $$('.item', $unknown)].forEach(list => {
 			list.forEach($el => {
 				let wifi = wifis.find(d => d.idHash === $el.getAttribute('id'));
 				if (!wifi) {
 					log('rm', $el.getAttribute('id'));
-					try { $list.removeChild($el); } catch (e) {}
+					try { $known.removeChild($el); } catch (e) {}
+					try { $unknown.removeChild($el); } catch (e) {}
 					try { $connected.removeChild($el); } catch (e) {}
 				}
 			});
@@ -119,29 +130,31 @@ getAPI('network').then(network => {
 				let $new = document.importNode($itemTemplate.content, true);
 				$el = $('.item', $new);
 				$el.setAttribute('id', wifi.idHash);
-				//$el.addEventListener('click', () => network.connect(wifi.ssid));
+				$el.addEventListener('click', () => network.connectWifi(wifi.ssid));
 				$('.name', $el).textContent = wifi.ssid;
 			}
-			//$('.tick', $el).style.visibility = wifi.active ? 'visible' : 'hidden';
 			$('.secure', $el).style.display = wifi.security ? 'block' : 'none';
 			$('.status img', $el).style.top = `${100 - wifi.strength}%`;
 			$('.status img', $el).style.height = `${wifi.strength}%`;
 			$('.status img', $el).style.left = `${(100 - wifi.strength) / 2}%`;
 			$('.status img', $el).style.width = `${wifi.strength}%`;
-			//log('reordering', wifi.ssid);
-			try { $list.removeChild($el); } catch (e) {}
+			
+			try { $known.removeChild($el); } catch (e) {}
+			try { $unknown.removeChild($el); } catch (e) {}
 			try { $connected.removeChild($el); } catch (e) {}
 			if (wifi.connected) {
 				$connected.appendChild($el);
+			} else if (wifi.uuid) {
+				$known.appendChild($el);
 			} else {
-				$list.appendChild($el);
+				$unknown.appendChild($el);
 			}
 		});
-		$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'hidden';
+		$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'none';
 	});
 
 	$('#network-manager').addEventListener('click', () => network.openManager());
-	$disconnect.addEventListener('click', () => network.disconnect());
+	$disconnect.addEventListener('click', () => network.disconnectWifi());
 	$toggleWifi.addEventListener('click', () => network.toggleWifi());
 });
 </script>

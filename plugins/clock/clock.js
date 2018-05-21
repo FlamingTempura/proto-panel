@@ -7,14 +7,18 @@ module.exports = {
 	applet: `${__dirname}/clock.html`,
 	api: {
 		time() {
+			let cb;
+			const time = () => {
+				if (!cb) { return; } // stopped listening
+				cb(moment().format('ddd DD MMM HH:mm'));
+				setTimeout(time, 60500 - Date.now() % 60000); // let it lag a little to ensure clock is on the right side of the minute
+			};
 			return {
-				listen: cb => {
-					const time = () => {
-						cb(moment().format('ddd DD MMM HH:mm'));
-						setTimeout(time, 60500 - Date.now() % 60000); // let it lag a little to ensure clock is on the right side of the minute
-					};
+				listen: (cb_) => {
+					cb = cb_;
 					time();
-				}
+				},
+				stopListening: () => cb = null
 			};
 		},
 		showCalendar() {

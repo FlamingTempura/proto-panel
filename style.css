@@ -103,6 +103,7 @@ body#panel {
 	background: none;
 	color: inherit;
 	outline: none;
+	margin-left: -4px;
 }
 #panel .applet:hover {
 	/*filter: brightness(50%) sepia(100%) hue-rotate(180deg) saturate(400%) brightness(200%);*/
