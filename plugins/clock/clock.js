@@ -9,8 +9,10 @@ module.exports = {
 		time() {
 			return {
 				listen: cb => {
-					const time = () => cb(moment().format('ddd DD MMM HH:mm'));
-					setInterval(time, 5000);
+					const time = () => {
+						cb(moment().format('ddd DD MMM HH:mm'));
+						setTimeout(time, 60500 - Date.now() % 60000); // let it lag a little to ensure clock is on the right side of the minute
+					};
 					time();
 				}
 			};
