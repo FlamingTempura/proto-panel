@@ -1,0 +1,21 @@
+<button class="applet" id="touchscreen">
+	<div class="icon">
+		<img id="on" class="active" src="plugins/touchscreen/on.svg">
+		<img id="off" class="inactive" src="plugins/touchscreen/off.svg">
+	</div>
+</button>
+<script>
+(function () {
+'use strict';
+
+const { getAPI, $, log } = require('./client-utils.js');
+
+getAPI('touchscreen').then(touchscreen => {
+	$('#touchscreen').addEventListener('click', () => touchscreen.toggle());
+	touchscreen.listen().listen(status => {
+		$('#on').style.display = status.on ? 'block' : 'none';
+		$('#off').style.display = !status.on ? 'block' : 'none';
+	});
+});
+}());
+</script>
