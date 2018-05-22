@@ -5,14 +5,12 @@
 .flash {
 	animation: flash 1s ease infinite;
 }
-
 @keyframes flash {
-  50% {
-    opacity: 0;
-  }
+	50% {
+		opacity: 0;
+	}
 }
 </style>
-
 <button class="applet" id="network">
 	<div class="icon">
 		<img id="net-none" class="active" src="plugins/network/net-none.svg">
@@ -36,7 +34,7 @@ getAPI('network').then(network => {
 		$('#net-none').style.display = `${net.status === 'disconnected' ? 'block' : 'none'}`;
 		$('#net-wifi').style.display = `${net.status !== 'disconnected' ? 'block' : 'none'}`;
 		$('#net-wifi-status').classList.toggle('flash', net.status === 'waiting');
-		$('#net-wifi-status').style.display = `${net.status !== 'disconnected' ? 'block' : 'none'}`;
+		$('#net-wifi-status').style.display = net.status !== 'disconnected' ? 'block' : 'none';
 		$('#net-wifi-status-icon').style.top = `${100 - net.strength}%`;
 		$('#net-wifi-status-icon').style.height = `${net.strength}%`;
 		$('#net-wifi-status-icon').style.left = `${(100 - net.strength) / 2}%`;
