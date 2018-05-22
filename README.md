@@ -7,6 +7,7 @@ A simple panel for linux desktops. It can control wifi, bluetooth, power, audio.
 * bluez for bluetooth plugin
 * networkmanager for network plugin
 * pulseaudio for audio plugin
+* xorg-xinput for touchscreen plugin
 
 ## Running proto-panel
 

@@ -84,11 +84,6 @@ body {
 }
 
 /* PANEL */
-body#panel {
-	white-space: nowrap;
-	text-align: right;
-	color: white;
-}
 #panel #applets {
 	display: inline-block;
 }
@@ -106,7 +101,6 @@ body#panel {
 	margin-left: -4px;
 }
 #panel .applet:hover {
-	/*filter: brightness(50%) sepia(100%) hue-rotate(180deg) saturate(400%) brightness(200%);*/
 	background: rgba(255, 255, 255, 0.2);
 }
 #panel .applet .icon {
@@ -121,46 +115,39 @@ body#panel {
 	width: 100%;
 	height: 100%;
 }
-#panel .active {
+#panel .active,
+#panel .inactive {
 	filter: brightness(2000%);
 }
 #panel .inactive {
-	filter: brightness(2000%);
 	opacity: 0.3;
 }
 #panel .red {
 	filter: sepia(100%) hue-rotate(-42deg) saturate(1000%);
 }
-#panel .black {
-	filter: brightness(10%);
-}
 #panel .status {
 	z-index: 1;
 	overflow: hidden;
 }
-#panel #net-wifi-status {
-	margin-top: -1px;
-}
-#panel #vol-status-middle {
-	z-index: 4;
-	top: 15vh !important;
-	height: 40vh;
-	overflow: hidden;
-}
-#panel #vol-status-middle img {
-	top: -15vh;
-	height: 70vh;
-}
-#panel #bat-charging,
-#panel #bat-critical {
-	z-index: 2;
-}
-#panel #clock {
-	line-height: 50vh;
-	font-size: 50vh;
-	padding: 0 38vh 0 20vh;
-}
 
+
+#panel.dark {
+	white-space: nowrap;
+	text-align: right;
+	color: white;
+}
+#panel.dark {
+	color: black;
+	text-shadow: 1px 2px 3px #f00;
+	/*background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.3) 20%);*/
+}
+#panel.dark .active,
+#panel.dark .inactive {
+	filter: brightness(0%);
+}
+#panel.dark .applet:hover {
+	background: rgba(255, 255, 255, 0.7);
+}
 
 
 /* MENUS */
@@ -221,11 +208,4 @@ body.menu {
 	line-height: 8px;
 	vertical-align: middle;
 	text-indent: -3px;
-}
-
-
-#audio-menu .slider {
-	left: 30px;
-	width: 190px;
-	margin: -2px 0 0px 0;
 }

@@ -7,7 +7,7 @@ const chalk = require('chalk');
 
 const config = {
 	height: 22,
-	plugins: ['bluetooth', 'audio', 'network', 'power', 'clock']
+	plugins: ['touchscreen', 'bluetooth', 'audio', 'network', 'power', 'clock']
 };
 
 const plugins = {};
