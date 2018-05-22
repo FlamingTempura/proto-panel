@@ -17,6 +17,7 @@
 			$('#bluetooth-icon').className = status.on ? 'active' : 'inactive';
 			$('#bluetooth-icon').style.display = status.connected ? 'none' : 'block';
 			$('#bluetooth-connected').style.display = status.connected ? 'block' : 'none';
+			$('#bluetooth').title = `Bluetooth is ${status.connected ? 'connected' :status.on ? 'switched on' : 'switched off'}.`;
 		});
 
 		//bluetooth.openMenu();

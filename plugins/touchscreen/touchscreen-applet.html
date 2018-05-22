@@ -15,7 +15,7 @@ getAPI('touchscreen').then(touchscreen => {
 	touchscreen.listen().listen(status => {
 		$('#on').style.display = status.on ? 'block' : 'none';
 		$('#off').style.display = !status.on ? 'block' : 'none';
-		$('#touchscreen').title = `Touch screen is ${status.on ? 'on' : 'off'}.`;
+		$('#touchscreen').title = `Touch screen is switched ${status.on ? 'on' : 'off'}.`;
 	});
 });
 }());
