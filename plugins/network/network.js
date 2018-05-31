@@ -25,53 +25,36 @@ const parseTerse = text => {
 
 const network = {
 
-	// get wifi networks 
-	getWifiNetworks() {
-		return exec('nmcli', ['radio', 'wifi'])
-			.then(status => {
-				if (!status.includes('enabled')) {
-					return null;
-				}
-				return Bluebird
-					.all([
-						exec('nmcli', ['dev', 'wifi', 'list']).then(parseTable),
-						exec('nmcli', ['con', 'show']).then(parseTable)
-					])
-					.then(([wifis, connections]) => {
-						return wifis.map(wifi => {
-							let connection = connections.find(c => c.NAME === wifi.SSID);
-							return {
-								connected: wifi['IN-USE'] === '*',
-								uuid: connection && connection.UUID,
-								ssid: wifi.SSID,
-								idHash: 'wifi-' + createHash('md5').update(wifi.SSID).digest('hex'),
-								strength: Number(wifi.SIGNAL),
-								security: wifi.SECURITY === '--' ? false : wifi.SECURITY
-							};
-						});
-					});
-			});
-	},
-
-	// get network status
-	netStatus() {
+	getStatus() {
 		return Bluebird
 			.all([
 				exec('nmcli', ['-t', 'device', 'show']).then(parseTerse),
+				exec('nmcli', ['con', 'show']).then(parseTable),
+				exec('nmcli', ['radio', 'wifi']),
 				exec('nmcli', ['dev', 'wifi', 'list']).then(parseTable)
 			])
-			.then(([devices, wifis]) => {
+			.spread((devices, connections, wifiStatus, wifis) => {
+				let vpn = connections.find(c => c.TYPE === 'vpn' && c.DEVICE !== '--');
+
 				// sort devices by their connection status (30 disconnected, 50 connecting, 100 connected)
-				devices = devices.sort((a, b) => parseInt(b['GENERAL.STATE']) - parseInt(a['GENERAL.STATE']));
-				let connection = devices[0] || {},
-					status = connection['GENERAL.STATE'].includes('(connected') ? 'connected' :
-							connection['GENERAL.STATE'].includes('(connecting') ? 'waiting' : 'disconnected',
-					wifi = wifis.find(wifi => wifi.SSID === connection['GENERAL.CONNECTION']) || {};
+				devices = devices
+					.filter(d => d['GENERAL.TYPE'] !== 'tun') // filter out vpn tunnels
+					.sort((a, b) => parseInt(b['GENERAL.STATE']) - parseInt(a['GENERAL.STATE']));
+
+				let device = devices[0] || {},
+					status = device['GENERAL.STATE'].includes('(connected') ? 'connected' :
+							device['GENERAL.STATE'].includes('(connecting') ? 'waiting' : 'disconnected',
+					wifi = wifis.find(wifi => wifi.SSID === device['GENERAL.CONNECTION']) || {},
+					connection = connections.find(c => c.NAME === device['GENERAL.CONNECTION']) || {};
+
 				return {
-					status,// connected, disconnected, waiting
-					type: connection['GENERAL.TYPE'],
-					name: connection['GENERAL.CONNECTION'],
-					strength: Number(wifi.SIGNAL)
+					wifiOn: wifiStatus.includes('enabled'),
+					status, // connected, disconnected, waiting
+					type: device['GENERAL.TYPE'],
+					name: device['GENERAL.CONNECTION'],
+					uuid: connection.UUID,
+					strength: Number(wifi.SIGNAL),
+					vpn: vpn && vpn.UUID
 				};
 			});
 	},
@@ -80,56 +63,63 @@ const network = {
 		let cb;
 		let newData = data => {
 			data = data.toString();
-			let match = data.match(/'([^']+)' state/);
-			if (match) {
-				network.netStatus().then(cb);
+			let connectionChange = data.match(/'([^']+)' state/),
+				vpnChange = data.includes('connected') || data.includes('removed');
+			if (connectionChange || vpnChange) {
+				network.getStatus().then(cb);
 			}
 		};
 		monitor.stdout.on('data', newData);
 		return {
 			listen: _cb => {
 				cb = _cb;
-				network.netStatus().then(cb);
+				network.getStatus().then(cb);
 			},
 			stopListening: () => monitor.stdout.removeListener('data', newData)
 		};
 	},
 
-	toggleWifi() {
-		return exec('nmcli', ['radio', 'wifi'])
-			.then(status => exec('nmcli', ['radio', 'wifi', status.includes('enabled') ? 'off' : 'on']));
-	},
-
-	connectWifi(ssid) {
-		return exec('nmcli', ['con', 'show'])
-			.then(parseTable)
-			.then(connections => {
-				let connection = connections.find(c => c.NAME === ssid);
-				if (connection) {
-					return exec('nmcli', ['con', 'up', connection.UUID]);
-				} else {
-					return exec('nmcli', ['dev', 'wifi', 'connect', ssid]);
-				}
+	getNetworks() {
+		return Bluebird
+			.all([
+				exec('nmcli', ['dev', 'wifi', 'list']).then(parseTable),
+				exec('nmcli', ['con', 'show']).then(parseTable)
+			])
+			.then(([wifis, connections]) => {
+				let networks = [];
+				connections.forEach(c => {
+					if (c.TYPE === 'vpn') {
+						networks.push({
+							type: 'vpn',
+							uuid: c.UUID,
+							idHash: 'vpn-' + createHash('md5').update(c.UUID).digest('hex'),
+							name: c.NAME,
+							connected: c.DEVICE !== '--'
+						});
+					}
+				});
+				wifis.map(wifi => {
+					let connection = connections.find(c => c.NAME === wifi.SSID);
+					networks.push({
+						type: 'wifi',
+						uuid: connection && connection.UUID,
+						name: wifi.SSID,
+						idHash: 'wifi-' + createHash('md5').update(wifi.SSID).digest('hex'),
+						strength: Number(wifi.SIGNAL),
+						security: wifi.SECURITY === '--' ? false : wifi.SECURITY,
+						connected: wifi['IN-USE'] === '*'
+					});
+				});
+				return networks;
 			});
 	},
 
-	disconnectWifi() {
-		return network.netStatus()
-			.then(status => {
-				return exec('nmcli', ['connection', 'down', status.name]);
-			});
-	},
-
-	scanWifi() {
-		return exec('nmcli', ['dev', 'wifi', 'rescan']);
-	},
-
-	listenWifiNetworks() {
+	listenNetworks() {
 		let cb,
 			i = 0;
 		let scan = () => {
 			if (!cb) { return; } // stopped listening
-			network.getWifiNetworks().then(cb);
+			network.getNetworks().then(cb);
 			if (i % 4 === 0) {
 				network.scanWifi();
 			}
@@ -144,6 +134,36 @@ const network = {
 			stopListening: () => cb = null
 		};
 	},
+	connect(uuid) {
+		return exec('nmcli', ['con', 'up', uuid]);
+	},
+
+	disconnect(uuid) { // also accepts SSID
+		return exec('nmcli', ['con', 'down', uuid]);
+	},
+
+	toggleWifi() {
+		return exec('nmcli', ['radio', 'wifi'])
+			.then(status => exec('nmcli', ['radio', 'wifi', status.includes('enabled') ? 'off' : 'on']));
+	},
+
+	connectWifi(ssid) {
+		return exec('nmcli', ['con', 'show'])
+			.then(parseTable)
+			.then(connections => {
+				let connection = connections.find(c => c.NAME === ssid);
+				if (connection) {
+					return network.connect(connection.UUID);
+				} else {
+					return exec('nmcli', ['dev', 'wifi', 'connect', ssid]);
+				}
+			});
+	},
+
+	scanWifi() {
+		return exec('nmcli', ['dev', 'wifi', 'rescan']);
+	},
+
  
 	// connect/disconnect network
 	// get VPNs

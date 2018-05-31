@@ -2,22 +2,38 @@
 #panel #net-wifi-status {
 	margin-top: -1px;
 }
-.flash {
-	animation: flash 1s ease infinite;
+.waiting #net-wifi {
+	filter: sepia(100%) hue-rotate(-120deg) brightness(40%) saturate(1000%)!important;
+}
+.waiting #net-wifi-status {
+	animation: flash 0.45s ease infinite;
+}
+.waiting #net-wifi-status img {
+	/**/
+	filter: brightness(0%);
 }
 @keyframes flash {
-	50% {
+	90% {
 		opacity: 0;
 	}
+}
+#net-vpn {
+	filter: sepia(100%) hue-rotate(-12deg) saturate(1200%);
+	z-index: 4;
+	width: 75% !important;
+	height: 75% !important;
+	left: 0% !important;
+	top: 25% !important;
 }
 </style>
 <button class="applet" id="network">
 	<div class="icon">
-		<img id="net-none" class="active" src="plugins/network/net-none.svg">
-		<img id="net-wifi" class="inactive" src="plugins/network/net-wifi.svg">
+		<img id="net-none" class="active" src="plugins/network/none.svg">
+		<img id="net-wifi" class="inactive" src="plugins/network/wifi.svg">
 		<div id="net-wifi-status" class="status">
-			<img id="net-wifi-status-icon" class="active" src="plugins/network/net-wifi.svg">
+			<img id="net-wifi-status-icon" class="active" src="plugins/network/wifi.svg">
 		</div>
+		<img id="net-vpn" src="plugins/network/vpn.svg">
 	</div>
 </button>
 <script>
@@ -31,14 +47,15 @@ getAPI('network').then(network => {
 
 	network.listen().listen(net => {
 		$('#network').title = net.name ? `Connected to ${net.name}.` : 'Not connected.';
-		$('#net-none').style.display = `${net.status === 'disconnected' ? 'block' : 'none'}`;
-		$('#net-wifi').style.display = `${net.status !== 'disconnected' ? 'block' : 'none'}`;
-		$('#net-wifi-status').classList.toggle('flash', net.status === 'waiting');
+		$('#net-none').style.display = net.status === 'disconnected' ? 'block' : 'none';
+		$('#net-wifi').style.display = net.status !== 'disconnected' ? 'block' : 'none';
+		$('#network').classList.toggle('waiting', net.status === 'waiting');
 		$('#net-wifi-status').style.display = net.status !== 'disconnected' ? 'block' : 'none';
 		$('#net-wifi-status-icon').style.top = `${100 - net.strength}%`;
 		$('#net-wifi-status-icon').style.height = `${net.strength}%`;
 		$('#net-wifi-status-icon').style.left = `${(100 - net.strength) / 2}%`;
 		$('#net-wifi-status-icon').style.width = `${net.strength}%`;
+		$('#net-vpn').style.display = net.vpn ? 'block' : 'none';
 	});
 
 	//network.openMenu();

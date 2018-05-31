@@ -79,7 +79,7 @@ const bluetooth = {
 						device.paired = true;
 					}
 				});
-				return devices;
+				return devices.slice(0, 30);
 			});
 	},
 	connect(address) {
@@ -109,7 +109,7 @@ const bluetooth = {
 		let display = electron.screen.getAllDisplays()[0];
 		let window = new electron.BrowserWindow({
 			width: 300,
-			height: 300,
+			height: 1000,
 			frame: false,
 			transparent: true,
 			y: 24,

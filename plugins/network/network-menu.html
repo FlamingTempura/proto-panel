@@ -3,7 +3,7 @@
 <head>
 <link rel="stylesheet" href="../../style.css">
 <style>
-.wifi {
+.network {
 	position: relative;
 }
 .icon {
@@ -13,7 +13,7 @@
 	height: 22px;
 	width: 22px;
 }
-.menu .container .item.wifi {
+.menu .container .item.network {
 	padding-top: 8px;
 	padding-bottom: 7px;
 }
@@ -36,7 +36,7 @@
 	filter: sepia(100%) hue-rotate(-12deg) saturate(1200%);
 	z-index: 2;
 }
-#wifi-connected {
+#wifi-connected, #vpn-connected {
 	font-weight: bold;
 }
 .header .switch {
@@ -50,7 +50,7 @@
 	top: 2.7px;
 	height: 14.5px;
 }
-#wifi-disconnect {
+#wifi-disconnect, #vpn-disconnect {
 	text-indent: 12px;
 	color: #999;
 }
@@ -76,6 +76,20 @@
 		</div>
 		<div class="separator"></div>
 
+		<div class="header">
+			VPN
+		</div>
+		<div id="vpn-list"> 
+			<div id="vpn-connected"></div>
+			<button id="vpn-disconnect" class="item">
+				Disconnect
+			</button>
+			
+			<div class="header">Other available VPNs</div>
+			<div id="vpns"></div>
+		</div>
+		<div class="separator"></div>
+
 		<button class="item" id="network-info">
 			Connection Information
 		</button>
@@ -85,14 +99,17 @@
 	</div>
 
 	<template id="item-template">
-		<button class="item wifi">
+		<button class="item network">
 			<div class="name"></div>
-			<div class="icon">
-				<img class="bg" src="net-wifi.svg">
+			<div class="wifi icon">
+				<img class="bg" src="wifi.svg">
 				<div class="status">
-					<img src="net-wifi.svg">
+					<img src="wifi.svg">
 				</div>
-				<img class="secure" src="net-wifi-secure.svg">
+				<img class="secure" src="wifi-secure.svg">
+			</div>
+			<div class="vpn icon">
+				<img src="vpn.svg">
 			</div>
 		</button>
 	</template>
@@ -102,60 +119,95 @@
 
 const { getAPI, $, $$, log } = require('../../client-utils.js');
 
-getAPI('network').then(network => {
+getAPI('network').then(({ listen, listenNetworks, connect, disconnect, openManager, toggleWifi }) => {
 	let $itemTemplate = $('#item-template'),
-		$known = $(`#wifi-known`),
-		$unknown = $(`#wifi-unknown`),
-		$connected = $(`#wifi-connected`),
-		$disconnect = $(`#wifi-disconnect`),
-		$toggleWifi = $('#wifi-toggle');
+		$wifiKnown = $(`#wifi-known`),
+		$wifiUnknown = $(`#wifi-unknown`),
+		$wifiConnected = $(`#wifi-connected`),
+		$wifiDisconnect = $(`#wifi-disconnect`),
+		$wifiToggle = $('#wifi-toggle'),
+		wifiDisconnect,
 
-	network.listenWifiNetworks().listen(wifis => {
-		$toggleWifi.classList.toggle('on', wifis !== null);
-		if (wifis === null) { wifis = []; }
-		[$$('.item', $connected), $$('.item', $known), $$('.item', $unknown)].forEach(list => {
-			list.forEach($el => {
-				let wifi = wifis.find(d => d.idHash === $el.getAttribute('id'));
-				if (!wifi) {
-					log('rm', $el.getAttribute('id'));
-					try { $known.removeChild($el); } catch (e) {}
-					try { $unknown.removeChild($el); } catch (e) {}
-					try { $connected.removeChild($el); } catch (e) {}
+		$vpnDisconnect = $(`#vpn-disconnect`),
+		$vpnConnected = $('#vpn-connected'),
+		$vpnList = $('#vpns'),
+		vpnDisconnect,
+
+		$networkLists = [$wifiConnected, $wifiKnown, $wifiUnknown, $vpnConnected, $vpnList];
+
+	listen().listen(status => {
+		$wifiToggle.classList.toggle('on', status.wifiOn);
+	});
+
+	listenNetworks().listen(networks => {
+
+		$networkLists.forEach($list => {
+			let $networks = $$('.item', $list);
+			$networks.forEach($network => {
+				let network = networks.find(d => d.idHash === $network.getAttribute('id'));
+				if (!network) {
+					log('rm', $network.getAttribute('id'));
+					$networkLists.forEach($list => {
+						try {
+							$list.removeChild($network);
+						} catch (e) {}
+					});
 				}
 			});
 		});
-		wifis.forEach(wifi => {
-			let $el = $(`#${wifi.idHash}`);
-			if (!$el) {
+
+		networks.forEach(network => {
+			let $network = $(`#${network.idHash}`);
+
+			if (!$network) {
 				let $new = document.importNode($itemTemplate.content, true);
-				$el = $('.item', $new);
-				$el.setAttribute('id', wifi.idHash);
-				$el.addEventListener('click', () => network.connectWifi(wifi.ssid));
-				$('.name', $el).textContent = wifi.ssid;
+				$network = $('.item', $new);
+				$network.setAttribute('id', network.idHash);
+				$network.addEventListener('click', () => connect(network.uuid || network.name));
+				$('.name', $network).textContent = network.name;
 			}
-			$('.secure', $el).style.display = wifi.security ? 'block' : 'none';
-			$('.status img', $el).style.top = `${100 - wifi.strength}%`;
-			$('.status img', $el).style.height = `${wifi.strength}%`;
-			$('.status img', $el).style.left = `${(100 - wifi.strength) / 2}%`;
-			$('.status img', $el).style.width = `${wifi.strength}%`;
+
+			$('.wifi.icon', $network).style.display = network.type === 'wifi' ? 'block' : 'none';
+			$('.vpn.icon', $network).style.display = network.type === 'vpn' ? 'block' : 'none';
+			if (network.type === 'wifi') {
+				$('.secure', $network).style.display = network.security ? 'block' : 'none';
+				$('.status img', $network).style.top = `${100 - network.strength}%`;
+				$('.status img', $network).style.height = `${network.strength}%`;
+				$('.status img', $network).style.left = `${(100 - network.strength) / 2}%`;
+				$('.status img', $network).style.width = `${network.strength}%`;
+			}
 			
-			try { $known.removeChild($el); } catch (e) {}
-			try { $unknown.removeChild($el); } catch (e) {}
-			try { $connected.removeChild($el); } catch (e) {}
-			if (wifi.connected) {
-				$connected.appendChild($el);
-			} else if (wifi.uuid) {
-				$known.appendChild($el);
-			} else {
-				$unknown.appendChild($el);
+			$networkLists.forEach($list => {
+				try {
+					$list.removeChild($network);
+				} catch (e) {}
+			});
+
+			let $list = network.type === 'wifi' ?
+							network.connected ? $wifiConnected :
+							network.uuid ? $wifiKnown :
+							$wifiUnknown :
+						network.type === 'vpn' ?
+							network.connected ? $vpnConnected : 
+							$vpnList :
+						null;
+
+			if ($list) {
+				$list.appendChild($network);
 			}
 		});
-		$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'none';
+		let wifi = networks.find(w => w.type === 'wifi' && w.connected),
+			vpn = networks.find(w => w.type === 'vpn' && w.connected);
+		$wifiDisconnect.style.display = wifi ? 'block' : 'none';
+		$vpnDisconnect.style.display = vpn ? 'block' : 'none';
+		wifiDisconnect = () => disconnect(wifi.uuid);
+		vpnDisconnect = () => disconnect(vpn.uuid);
 	});
 
-	$('#network-manager').addEventListener('click', () => network.openManager());
-	$disconnect.addEventListener('click', () => network.disconnectWifi());
-	$toggleWifi.addEventListener('click', () => network.toggleWifi());
+	$('#network-manager').addEventListener('click', () => openManager());
+	$wifiDisconnect.addEventListener('click', () => wifiDisconnect());
+	$wifiToggle.addEventListener('click', () => toggleWifi());
+	$vpnDisconnect.addEventListener('click', () => vpnDisconnect());
 });
 </script>
 </html>
