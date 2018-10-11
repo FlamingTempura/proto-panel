@@ -6,7 +6,7 @@ const electron = require('electron');
 module.exports = {
 	applet: `${__dirname}/clock.html`,
 	api: {
-		time() {
+		changeListener() {
 			let cb;
 			const time = () => {
 				if (!cb) { return; } // stopped listening

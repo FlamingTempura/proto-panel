@@ -10,16 +10,19 @@
 }
 </style>
 <button class="applet" id="clock"></button>
+
 <script>
 (function () {
-	'use strict';
-	
-	const { getAPI, $ } = require('./client-utils.js');
-	const $clock = $('#clock');
 
-	getAPI('clock').then(clock => {
-		clock.time().listen(time => $clock.textContent = time);
-		$clock.addEventListener('click', () => clock.showCalendar());
-	});
+'use strict';
+
+const { getAPI, $ } = require('./src/client-utils');
+const $clock = $('#clock');
+
+getAPI('clock').then(clock => {
+	clock.on('change', time => $clock.textContent = time); // get time formatted by moment
+	$clock.addEventListener('click', () => clock.showCalendar());
+});
+
 }());
 </script>

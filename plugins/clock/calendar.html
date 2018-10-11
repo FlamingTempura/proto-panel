@@ -3,6 +3,9 @@
 <head>
 <link rel="stylesheet" href="../../style.css">
 <style>
+body {
+	background: white;
+}
 .cal {
 	padding: 6px !important;
 }
@@ -87,7 +90,7 @@
 <script>
 'use strict';
 
-const { $, log } = require('../../client-utils.js');
+const { $ } = require('../../src/client-utils.js');
 
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
