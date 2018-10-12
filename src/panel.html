@@ -1,7 +1,9 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<link rel="stylesheet" href="style.css">
+<style>
+/*STYLE*/
+</style>
 </head>
 <body id="panel" class="dark">
 	<div id="applets">
@@ -12,10 +14,12 @@
 (function () {
 	'use strict';
 	const { ipcRenderer } = require('electron');
-	const { $ } = require('./client-utils');
-	setTimeout(() => {
-		ipcRenderer.send('setSize', $('#applets').offsetWidth + 100);
-	}, 2000);
+	const { $ } = require('./src/client-utils');
+
+	const resize = () => ipcRenderer.send('setSize', $('#applets').offsetWidth + 100);
+
+	//resize();
+	//window.addEventListener('load', resize);
 }());
 </script>
 </html>

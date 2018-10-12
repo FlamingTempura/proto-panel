@@ -66,7 +66,7 @@ const watchb = (file, cb, poll) => {
 const watch = (file, cb, poll) => {
 	if (poll) {
 		let prev;
-		let buffer = new Buffer(1);
+		let buffer = new Buffer.alloc(1);
 		fs.open(file, 'r', (status, fd) => {
 			setInterval(() => {
 				fs.read(fd, buffer, 0, 1, 0, () => {

@@ -7,7 +7,6 @@ const log = (...msg) => ipcRenderer.send('log', msg);
 const getAPI = (namespace) => {
 	return new Promise(resolve => {
 		let id = Math.round(Math.random() * 1000000000);
-		log('gg', 'getAPI', id, namespace)
 		ipcRenderer.send('getAPI', id, namespace);
 		ipcRenderer.on(`getAPI#${id}`, (e, functions) => {
 			let api = {};
@@ -15,7 +14,7 @@ const getAPI = (namespace) => {
 				api[f] = (...args) => {
 					let listenCB, resolved;
 					let p = new Promise(resolve => {
-						log('call', `${namespace}.${f}`);
+						log('call', `${namespace}.${f}()`);
 						let id = Math.round(Math.random() * 1000000000);
 						ipcRenderer.send(`${namespace}.${f}`, id, ...args);
 						let handler = (e, data) => {
@@ -33,10 +32,33 @@ const getAPI = (namespace) => {
 						};
 						ipcRenderer.on(`${namespace}.${f}#${id}`, handler);
 					});
-					p.listen = cb => listenCB = cb;
+					p.listen = cb => {
+						listenCB = cb;
+						return () => {
+							console.log('stop listening');
+							ipcRenderer.send(`${namespace}.${f}.stop`, id);
+							// stop listening
+						};
+					};
 					return p;
 				};
 			});
+			let listeners = {};
+			api.on = (event, cb) => {
+				if (!listeners[event]) {
+					listeners[event] = [];
+					api[event + 'Listener']().listen((...args) => {
+						listeners[event].forEach(cb => cb(...args));
+					});
+				}
+				listeners[event].push(cb);
+			};
+			api.off = (event, cb) => {
+				let i = listeners[event].indexOf(cb);
+				if (i > -1) {
+					listeners[event].splice(i, 1);
+				}
+			};
 			resolve(api);
 		});
 	});
@@ -77,4 +99,11 @@ const createSlider = ($slider, min = 0, max = 100) => {
 	$slider.getValue = () => currVal;
 };
 
-module.exports = { log, getAPI, $, $$, createSlider };
+const browser = {
+	on(event, cb) {
+		ipcRenderer.send('on', event);
+		ipcRenderer.on(`on:${event}`, cb);
+	}
+};
+
+module.exports = { log, getAPI, $, $$, createSlider, browser };

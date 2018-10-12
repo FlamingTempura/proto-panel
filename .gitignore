@@ -1,2 +1,3 @@
 node_modules
 .panel.html
+*.sublime-workspace

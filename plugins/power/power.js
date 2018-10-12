@@ -9,9 +9,10 @@ const { throttle } = require('lodash');
 
 const batteryRoot = '/sys/class/power_supply/BAT0';
 const backlightRoot = '/sys/class/backlight/intel_backlight';
+let menu;
 
 const power = {
-	battery() {
+	batteryListener() {
 		return {
 			listen(cb) {
 				let update = () => power.getBattery().then(cb);
@@ -21,12 +22,20 @@ const power = {
 			}
 		};
 	},
-	brightness() {
+	brightnessListener() {
 		return {
 			listen(cb) {
 				let update = () => power.getBrightness().then(cb);
 				watch(`${backlightRoot}/brightness`, update);
 				update();
+			}
+		};
+	},
+	menuListener() {
+		return {
+			listen(cb) {
+				menu.on('show', () => cb(true));
+				menu.on('hide', () => cb(false));
 			}
 		};
 	},
@@ -67,22 +76,7 @@ const power = {
 	}, 200),
 
 	openMenu() {
-		let display = electron.screen.getAllDisplays()[0];
-		let window = new electron.BrowserWindow({
-			width: 300,
-			height: 300,
-			frame: false,
-			transparent: true,
-			y: 24,
-			x: display.bounds.width - 300,
-			focusable: true,
-			resizable: false,
-			titleBarStyle: 'hidden',
-			alwaysOnTop: true
-		});
-		window.setMenu(null);
-		window.loadURL(`file://${__dirname}/power-menu.html`);
-		window.on('blur', () => window.close());
+		menu.show();
 	}
 };
 
@@ -132,5 +126,24 @@ power.getMaxCapacity()
 
 module.exports = {
 	applet: `${__dirname}/power.html`,
-	api: power
+	api: power,
+	init() {
+		let display = electron.screen.getAllDisplays()[0];
+		menu = new electron.BrowserWindow({
+			width: 300,
+			height: 300,
+			frame: false,
+			transparent: true,
+			y: 24,
+			x: display.bounds.width - 300,
+			focusable: true,
+			resizable: false,
+			titleBarStyle: 'hidden',
+			alwaysOnTop: true,
+			show: false
+		});
+		menu.setMenu(null);
+		menu.loadURL(`file://${__dirname}/power-menu.html`);
+		menu.on('blur', () => menu.hide());
+	}
 };

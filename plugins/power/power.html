@@ -6,44 +6,44 @@
 </style>
 <button class="applet" id="power">
 	<div class="icon">
-		<img id="bat-icon" class="inactive" src="plugins/power/bat.svg">
+		<img id="bat-icon" class="inactive" src="../plugins/power/bat.svg">
 		<div id="bat-status" class="status">
-			<img id="bat-status-icon" class="active" src="plugins/power/bat.svg">
+			<img id="bat-status-icon" class="active" src="../plugins/power/bat.svg">
 		</div>
 	</div>
 </button>
 <script>
 (function () {
-	'use strict';
 
-	const { getAPI, $ } = require('./client-utils.js');
+'use strict';
 
-	getAPI('power').then(power => {
-		$('#power').addEventListener('click', () => power.openMenu());
-		power.battery().listen(battery => {
-			let remaining = isNaN(Number(battery.minutes)) ? '' : battery.hours ?
-				`${battery.hours} hours and ${battery.minutes} minutes` :
-				`${battery.minutes} minutes`;
+const { getAPI, $ } = require('./src/client-utils');
 
-			$('#power').title = battery.charging ?
-				battery.percent === 100 ?
-					'Plugged in. Battery is fully charged.' : 
-					`Plugged in. Battery is ${battery.percent}% charged. ${remaining ? `About ${remaining} until charged.` : ''}` :
-				`${battery.percent}% battery remaining. ${remaining ? `About ${remaining}.` : ''}`;
+getAPI('power').then(power => {
+	$('#power').addEventListener('click', () => power.openMenu());
+	power.on('battery', battery => {
+		let remaining = isNaN(Number(battery.minutes)) ? '' : battery.hours ?
+			`${battery.hours} hours and ${battery.minutes} minutes` :
+			`${battery.minutes} minutes`;
 
-			let src = battery.charging ? 'plugins/power/bat-charging.svg' :
-			          battery.percent < 10 ? 'plugins/power/bat-critical.svg' :
-			          'plugins/power/bat.svg';
+		$('#power').title = battery.charging ?
+			battery.percent === 100 ?
+				'Plugged in. Battery is fully charged.' : 
+				`Plugged in. Battery is ${battery.percent}% charged. ${remaining ? `About ${remaining} until charged.` : ''}` :
+			`${battery.percent}% battery remaining. ${remaining ? `About ${remaining}.` : ''}`;
 
-			$('#bat-icon').setAttribute('src', src);
-			$('#bat-status-icon').setAttribute('src', src);
+		let src = battery.charging ? '../plugins/power/bat-charging.svg' :
+		          battery.percent < 10 ? '../plugins/power/bat-critical.svg' :
+		          '../plugins/power/bat.svg';
 
-			$('#bat-icon').className = !battery.charging && battery.percent < 10 ? 'red' : 'inactive';
-			$('#bat-status').style.top = `${100 - battery.percent}%`;
-			$('#bat-status-icon').style.top = `${-100 + battery.percent}%`;
-		});
+		$('#bat-icon').setAttribute('src', src);
+		$('#bat-status-icon').setAttribute('src', src);
 
-	//power.openMenu();
+		$('#bat-icon').className = !battery.charging && battery.percent < 10 ? 'red' : 'inactive';
+		$('#bat-status').style.top = `${100 - battery.percent}%`;
+		$('#bat-status-icon').style.top = `${-100 + battery.percent}%`;
 	});
+});
+
 }());
 </script>

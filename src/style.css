@@ -1,6 +1,10 @@
 * {
 	box-sizing: border-box;
 }
+html {
+
+	background: transparent;
+}
 body {
 	overflow: hidden;
 	font-family: 'Ubuntu', sans-serif;
@@ -8,6 +12,8 @@ body {
 	margin: 0;
 	user-select: none;
 	line-height: 1.5em;
+	background: #efefef;
+	/*background: transparent;*/
 }
 
 /* WIDGETS */

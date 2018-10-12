@@ -2,10 +2,10 @@
   "name": "simple-panel",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/panel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron . --enable-transparent-visuals --disable-gpu --enable-logging",
+    "start": "electron . --enable-logging",
     "dev": "nodemon -e js,html,svg,css --exec npm run start"
   },
   "author": "",
@@ -13,9 +13,9 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "chalk": "^2.4.1",
-    "electron": "^2.0.1",
+    "electron": "^3.0.4",
     "lodash": "^4.17.10",
-    "moment": "^2.22.1",
-    "nodemon": "^1.17.4"
+    "moment": "^2.22.2",
+    "nodemon": "^1.17.5"
   }
 }
