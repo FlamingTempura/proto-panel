@@ -15,14 +15,14 @@
 </style>
 <button class="applet" id="audio">
 	<div class="icon">
-		<img id="vol-bg" class="inactive" src="plugins/audio/vol.svg">
-		<img id="vol-mute" class="inactive" src="plugins/audio/vol-mute.svg">
+		<img id="vol-bg" class="inactive" src="../plugins/audio/vol.svg">
+		<img id="vol-mute" class="inactive" src="../plugins/audio/vol-mute.svg">
 		<div id="vol-status" class="status">
-			<img id="vol-status-icon" class="active" src="plugins/audio/vol.svg">
+			<img id="vol-status-icon" class="active" src="../plugins/audio/vol.svg">
 		</div>
 		<div id="vol-status-middle" class="status">
 			<!-- push the middle slightly ahead to overlap each ring -->
-			<img id="vol-status-middle-icon" class="active" src="plugins/audio/vol.svg">
+			<img id="vol-status-middle-icon" class="active" src="../plugins/audio/vol.svg">
 		</div>
 	</div>
 </button>
@@ -30,12 +30,12 @@
 (function () {
 	'use strict';
 
-	const { getAPI, $ } = require('./client-utils.js');
+	const { getAPI, $ } = require('./src/client-utils');
 
 	getAPI('audio').then(audio => {
 		$('#audio').addEventListener('click', () => audio.openMenu());
 
-		audio.listen('sink').listen(devices => {
+		audio.on('sink', devices => {
 			let activeDevice = devices.find(d => d.active);
 			if (!activeDevice) {
 				// TODO: no audio icon

@@ -1,12 +1,34 @@
 'use strict';
 
 const electron = require('electron');
-const { exec } = require('../../utils');
+const { exec } = require('../../src/utils');
 const { spawn } = require('child_process');
 const Bluebird = require('bluebird');
 const { createHash } = require('crypto');
 
-let pactl = spawn('pactl', ['subscribe'], { shell: true }).stdout;
+let pactl = spawn('pactl', ['subscribe'], { shell: true }).stdout,
+	menu;
+
+const listen = (type) => {
+	let cb, prevData;
+	let newData = data => {
+		if (data.toString().includes(`'change' on ${type}`)) {
+			audio.getDevices(type)
+				.then(data => {
+					if (JSON.stringify(data) !== JSON.stringify(prevData)) {
+						cb(data);
+						prevData = data;
+					}
+				});
+		}
+	};
+	pactl.on('data', newData);
+	audio.getDevices(type).then((data) => cb(data));
+	return {
+		listen: _cb => cb = _cb,
+		stopListening: () => pactl.removeListener('data', newData)
+	};
+};
 
 const audio = {
 	getDevices(type) {
@@ -47,32 +69,34 @@ const audio = {
 	toggleMute(type, id, mute) {
 		return exec('pactl', [`set-${type}-mute`, id, mute === undefined ? 'toggle' : mute ? 1 : 0]);
 	},
-	listen(type) {
-		let cb, prevData;
-		let newData = data => {
-			if (data.toString().includes(`'change' on ${type}`)) {
-				audio.getDevices(type)
-					.then(data => {
-						if (JSON.stringify(data) !== JSON.stringify(prevData)) {
-							cb(data);
-							prevData = data;
-						}
-					});
-			}
-		};
-		pactl.on('data', newData);
-		audio.getDevices(type).then((data) => cb(data));
-		return {
-			listen: _cb => cb = _cb,
-			stopListening: () => pactl.removeListener('data', newData)
-		};
+	sinkListener() {
+		return listen('sink');
+	},
+	sourceListener() {
+		return listen('source');
 	},
 	openMixer() {
 		return exec('pavucontrol');
 	},
 	openMenu() {
+		menu.show();
+	},
+	menuListener() {
+		return {
+			listen(cb) {
+				menu.on('show', () => cb(true));
+				menu.on('hide', () => cb(false));
+			}
+		};
+	}
+};
+
+module.exports = {
+	applet: `${__dirname}/audio.html`,
+	api: audio,
+	init() {
 		let display = electron.screen.getAllDisplays()[0];
-		let window = new electron.BrowserWindow({
+		menu = new electron.BrowserWindow({
 			width: 300,
 			height: 500,
 			frame: false,
@@ -82,15 +106,11 @@ const audio = {
 			focusable: true,
 			resizable: false,
 			titleBarStyle: 'hidden',
-			alwaysOnTop: true
+			alwaysOnTop: true,
+			show: false
 		});
-		window.setMenu(null);
-		window.loadURL(`file://${__dirname}/audio-menu.html`);
-		window.on('blur', () => window.close());
+		menu.setMenu(null);
+		menu.loadURL(`file://${__dirname}/audio-menu.html`);
+		menu.on('blur', () => menu.hide());
 	}
-};
-
-module.exports = {
-	applet: `${__dirname}/audio.html`,
-	api: audio
 };

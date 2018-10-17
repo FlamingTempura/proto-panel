@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<link rel="stylesheet" href="../../style.css">
+	<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
+<link rel="stylesheet" href="../../src/style.css">
 <style>
 .network {
 	position: relative;
@@ -117,9 +118,9 @@
 <script>
 'use strict';
 
-const { getAPI, $, $$, log } = require('../../client-utils.js');
+const { getAPI, $, $$, log } = require('../../src/client-utils.js');
 
-getAPI('network').then(({ listen, listenNetworks, connect, disconnect, openManager, toggleWifi }) => {
+getAPI('network').then(({ on, off, connect, disconnect, openManager, toggleWifi }) => {
 	let $itemTemplate = $('#item-template'),
 		$wifiKnown = $(`#wifi-known`),
 		$wifiUnknown = $(`#wifi-unknown`),
@@ -135,11 +136,16 @@ getAPI('network').then(({ listen, listenNetworks, connect, disconnect, openManag
 
 		$networkLists = [$wifiConnected, $wifiKnown, $wifiUnknown, $vpnConnected, $vpnList];
 
-	listen().listen(status => {
+	$('#network-manager').addEventListener('click', () => openManager());
+	$wifiDisconnect.addEventListener('click', () => wifiDisconnect());
+	$wifiToggle.addEventListener('click', () => toggleWifi());
+	$vpnDisconnect.addEventListener('click', () => vpnDisconnect());
+	
+	const onChange = status => {
 		$wifiToggle.classList.toggle('on', status.wifiOn);
-	});
+	};
 
-	listenNetworks().listen(networks => {
+	const onNetworks = networks => {
 
 		$networkLists.forEach($list => {
 			let $networks = $$('.item', $list);
@@ -202,12 +208,19 @@ getAPI('network').then(({ listen, listenNetworks, connect, disconnect, openManag
 		$vpnDisconnect.style.display = vpn ? 'block' : 'none';
 		wifiDisconnect = () => disconnect(wifi.uuid);
 		vpnDisconnect = () => disconnect(vpn.uuid);
+	};
+
+
+	on('menu', show => {
+		if (show) {
+			on('change', onChange);
+			on('networks', onNetworks);
+		} else {
+			off('change', onChange);
+			off('networks', onNetworks);
+		}
 	});
 
-	$('#network-manager').addEventListener('click', () => openManager());
-	$wifiDisconnect.addEventListener('click', () => wifiDisconnect());
-	$wifiToggle.addEventListener('click', () => toggleWifi());
-	$vpnDisconnect.addEventListener('click', () => vpnDisconnect());
 });
 </script>
 </html>

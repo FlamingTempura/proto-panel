@@ -1,26 +1,25 @@
 <button class="applet" id="bluetooth">
 	<div class="icon">
-		<img id="bluetooth-icon" class="inactive" src="plugins/bluetooth/bluetooth.svg">
-		<img id="bluetooth-connected" class="active" src="plugins/bluetooth/bluetooth-connected.svg">
+		<img id="bluetooth-icon" class="inactive" src="../plugins/bluetooth/bluetooth.svg">
+		<img id="bluetooth-connected" class="active" src="../plugins/bluetooth/bluetooth-connected.svg">
 	</div>
 </button>
 <script>
 (function () {
-	'use strict';
 
-	const { getAPI, $, log } = require('./client-utils.js');
+'use strict';
 
-	getAPI('bluetooth').then(bluetooth => {
-		$('#bluetooth').addEventListener('click', () => bluetooth.openMenu());
-		bluetooth.listen().listen(status => {
-			//log(status);
-			$('#bluetooth-icon').className = status.on ? 'active' : 'inactive';
-			$('#bluetooth-icon').style.display = status.connected ? 'none' : 'block';
-			$('#bluetooth-connected').style.display = status.connected ? 'block' : 'none';
-			$('#bluetooth').title = `Bluetooth is ${status.connected ? 'connected' :status.on ? 'switched on' : 'switched off'}.`;
-		});
+const { getAPI, $ } = require('./src/client-utils');
 
-		//bluetooth.openMenu();
+getAPI('bluetooth').then(bluetooth => {
+	$('#bluetooth').addEventListener('click', () => bluetooth.openMenu());
+	bluetooth.on('change', status => {
+		$('#bluetooth-icon').className = status.on ? 'active' : 'inactive';
+		$('#bluetooth-icon').style.display = status.connected ? 'none' : 'block';
+		$('#bluetooth-connected').style.display = status.connected ? 'block' : 'none';
+		$('#bluetooth').title = `Bluetooth is ${status.connected ? 'connected' :status.on ? 'switched on' : 'switched off'}.`;
 	});
+});
+
 }());
 </script>

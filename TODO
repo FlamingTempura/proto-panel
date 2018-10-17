@@ -1,13 +1,15 @@
 TODO:
-* autosize panel
 * battery chart
-* wifi connect
-* wifi disconnect
-* preload menus
-* wifi watch
 * brightness permissions
 * camera toggle
-
+* menu should close on clicking panel
+* put extra wifis in submenu
+* microphone should be separate applet
+* improve integration with desktop environment
+* use colors rather than filters
+* traffic analysis / list of domains contacted
+* update clock after standby
+* connect to wifi
 
 === AUDIO ===
 Output:

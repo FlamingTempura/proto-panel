@@ -4,7 +4,7 @@ const Bluebird = require('bluebird');
 const fs = Bluebird.promisifyAll(require('fs'));
 const moment = require('moment');
 const electron = require('electron');
-const { exec, watch } = require('../../utils');
+const { exec, watch } = require('../../src/utils');
 const { throttle } = require('lodash');
 
 const batteryRoot = '/sys/class/power_supply/BAT0';

@@ -28,24 +28,24 @@
 </style>
 <button class="applet" id="network">
 	<div class="icon">
-		<img id="net-none" class="active" src="plugins/network/none.svg">
-		<img id="net-wifi" class="inactive" src="plugins/network/wifi.svg">
+		<img id="net-none" class="active" src="../plugins/network/none.svg">
+		<img id="net-wifi" class="inactive" src="../plugins/network/wifi.svg">
 		<div id="net-wifi-status" class="status">
-			<img id="net-wifi-status-icon" class="active" src="plugins/network/wifi.svg">
+			<img id="net-wifi-status-icon" class="active" src="../plugins/network/wifi.svg">
 		</div>
-		<img id="net-vpn" src="plugins/network/vpn.svg">
+		<img id="net-vpn" src="../plugins/network/vpn.svg">
 	</div>
 </button>
 <script>
 (function () {
 'use strict';
 
-const { getAPI, $, log } = require('./client-utils.js');
+const { getAPI, $, log } = require('./src/client-utils');
 
 getAPI('network').then(network => {
 	$('#network').addEventListener('click', () => network.openMenu());
 
-	network.listen().listen(net => {
+	network.on('change', net => {
 		$('#network').title = net.name ? `Connected to ${net.name}.` : 'Not connected.';
 		$('#net-none').style.display = net.status === 'disconnected' ? 'block' : 'none';
 		$('#net-wifi').style.display = net.status !== 'disconnected' ? 'block' : 'none';

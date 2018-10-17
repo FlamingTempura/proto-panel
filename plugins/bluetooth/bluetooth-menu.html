@@ -1,14 +1,73 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<link rel="stylesheet" href="../../style.css">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
+<link rel="stylesheet" href="../../src/style.css">
+<style>
+.connected .name {
+	font-weight: bold;
+}
+.unpair {
+	position: absolute;
+	right: 4px;
+	top: 5px;
+	background: #999;
+	font-size: 12px;
+	/*color: white;*/
+	color: #fff;
+	border: 1px solid #999;
+	border-radius: 10px 10px;
+	height: 20px;
+	padding: 0px 5px;
+	box-sizing: border-box;
+}
+.unpair:hover {
+	background: #666;
+}
+.item, .header {
+	position: relative;
+	padding-left: 34px !important;
+}
+.pending {
+	position: absolute;
+	right: 5px;
+	top: 5px;
+	width: 20px;
+	height: 20px;
+    animation: spin 2s linear infinite;
+    border: 2px solid #ddd;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: none;
+}
+
+.icon {
+	width: 18px;
+	height: 18px;
+	position: absolute;
+	opacity: 0.8;
+	left: 10px;
+	top: 5px;
+}
+
+.name {
+	
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+</style>
 </head>
+
 <body id="bluetooth-menu" class="menu">
 	<div class="container">
 		<div id="devices">
 			<div class="header">Paired</div>
 			<div id="paired-list"></div>
-			<div class="header">Available</div>
+			<div class="header">Available<div class="pending scanning"></div></div>
 			<div id="available-list"></div>
 			<div class="separator"></div>
 		</div>
@@ -17,14 +76,18 @@
 	</div>
 	<template id="item-template">
 		<button class="item">
+			<img class="icon">
 			<span class="name"></span>
+			<div class="unpair">Unpair</div>
+			<div class="pending"></div>
 		</button>
 	</template>
 </body>
+
 <script>
 'use strict';
 
-const { getAPI, $, $$, log } = require('../../client-utils.js');
+const { getAPI, $, $$, log } = require('../../src/client-utils.js');
 
 getAPI('bluetooth').then(bluetooth => {
 	let $toggle = $('#bluetooth-toggle'),
@@ -32,32 +95,49 @@ getAPI('bluetooth').then(bluetooth => {
 		$available = $('#available-list'),
 		$itemTemplate = $('#item-template'),
 		$devices = $('#devices');
-	bluetooth.listen().listen(status => {
+
+	const onChange = status => {
 		$toggle.textContent = `Turn ${status.on ? 'Off' : 'On'} Bluetooth`;
 		$devices.style.display = status.on ? 'block' : 'none';
-	});
-	$toggle.addEventListener('click', () => bluetooth.toggle());
+	};
 
-	bluetooth.listenScan().listen(devices => {
+	const onControllers = controllers => {
+		let scanning = controllers.find(c => c.discovering);
+		$('.scanning').style.display = scanning ? 'block' : 'none';
+	};
+
+	const onScan = devices => {
+		//console.log(JSON.stringify(devices));
 		[$$('.item', $paired), $$('.item', $available)].forEach(list => {
 			list.forEach($el => {
-				let wifi = devices.find(d => d.idHash === $el.getAttribute('id'));
-				if (!wifi) {
-					log('rm', $el.getAttribute('id'));
+				let device = devices.find(d => d.id === $el.getAttribute('id'));
+				if (!device) {
 					try { $paired.removeChild($el); } catch (e) {}
 					try { $available.removeChild($el); } catch (e) {}
 				}
 			});
 		});
 		devices.forEach(device => {
-			let $el = $(`#${device.idHash}`);
+
+			let $el = $(`#${device.id}`);
 			if (!$el) {
 				let $new = document.importNode($itemTemplate.content, true);
 				$el = $('.item', $new);
-				$el.setAttribute('id', device.idHash);
-				$el.addEventListener('click', () => bluetooth.connect(device.address));
-				$('.name', $el).textContent = device.name;
+				$el.setAttribute('id', device.id);
+				$el.addEventListener('click', () => bluetooth.pair(device.address));
+				$('.unpair', $el).addEventListener('click', e => {
+					bluetooth.unpair(device.address);
+					e.stopPropagation();
+					e.preventDefault();
+				});
 			}
+
+			$('.name', $el).textContent = device.name || device.address;
+			$('.unpair', $el).style.display = device.paired ? 'block' : 'none';
+			$('.icon', $el).classList.add(device.icon);
+			$('.pending', $el).style.display = device.pending ? 'block' : 'none';
+			$('.icon', $el).src = `device-icons/${device.icon || 'unknown'}.svg`;
+			$el.classList.toggle('connected', device.connected);
 			
 			try { $paired.removeChild($el); } catch (e) {}
 			try { $available.removeChild($el); } catch (e) {}
@@ -68,6 +148,24 @@ getAPI('bluetooth').then(bluetooth => {
 			}
 		});
 		//$disconnect.style.display = wifis.find(w => w.connected) ? 'block' : 'hidden';
+	};
+
+	$toggle.addEventListener('click', () => {
+		bluetooth.toggle().then(() => bluetooth.scan());
+	});
+
+	bluetooth.on('menu', show => {
+		if (show) {
+			bluetooth.on('change', onChange);
+			bluetooth.on('devices', onScan);
+			bluetooth.on('controllers', onControllers);
+			bluetooth.scan();
+		} else {
+			bluetooth.off('change', onChange);
+			bluetooth.off('devices', onScan);
+			bluetooth.off('controllers', onControllers);
+			bluetooth.scan(false);
+		}
 	});
 });
 </script>

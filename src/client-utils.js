@@ -76,7 +76,6 @@ const createSlider = ($slider, min = 0, max = 100) => {
 		handleOffset = $handle.offsetWidth / 2 - 2,
 		offset = -$slider.offsetLeft - handleOffset,
 		mousedown, currVal;
-	log(offset);
 
 	$slider.addEventListener('mousedown', () => mousedown = true);
 	window.addEventListener('mouseup', () => mousedown = false);
@@ -98,12 +97,12 @@ const createSlider = ($slider, min = 0, max = 100) => {
 	};
 	$slider.getValue = () => currVal;
 };
-
+/*
 const browser = {
 	on(event, cb) {
 		ipcRenderer.send('on', event);
 		ipcRenderer.on(`on:${event}`, cb);
 	}
-};
+};*/
 
-module.exports = { log, getAPI, $, $$, createSlider, browser };
+module.exports = { log, getAPI, $, $$, createSlider/*, browser*/ };

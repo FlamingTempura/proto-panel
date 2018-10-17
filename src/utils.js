@@ -5,7 +5,7 @@ const { execFile } = require('child_process');
 const fs = require('fs');
 
 const exec = (cmd, args = []) => {
-	console.log('calling', cmd, ...args)
+	console.log('calling', cmd, ...args);
 	return new Bluebird((resolve, reject) => {
 		execFile(cmd, args, (err, stdout, stderr) => {
 			if (err || stderr) { return reject(err || stderr); }
@@ -26,42 +26,6 @@ const parseTable = data => {
 		return row;
 	});
 };
-
-const watcha = (file, cb, poll) => {
-	if (poll) {
-		let prev;
-		setInterval(() => {
-			fs.statAsync(file)
-				.then(stat => {
-					console.log(stat)
-					if (stat.mtimeMs !== prev) {
-						prev = stat.mtimeMs;
-						cb();
-					}
-				});
-		}, poll);
-		//fs.watchFile(file, { interval: poll }, cb); // stat polling
-	}
-	fs.watch(file, cb);
-};
-
-const watchb = (file, cb, poll) => {
-	if (poll) {
-		let prev;
-		setInterval(() => {
-			fs.readFileAsync(file, 'utf8')
-				.then(contents => {
-					if (contents !== prev) {
-						prev = contents;
-						cb();
-					}
-				});
-		}, poll);
-		//fs.watchFile(file, { interval: poll }, cb); // stat polling
-	}
-	fs.watch(file, cb);
-};
-
 
 const watch = (file, cb, poll) => {
 	if (poll) {

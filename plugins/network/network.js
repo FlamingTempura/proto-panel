@@ -2,11 +2,12 @@
 
 const Bluebird = require('bluebird');
 const { spawn } = require('child_process');
-const { exec, parseTable } = require('../../utils');
+const { exec, parseTable } = require('../../src/utils');
 const electron = require('electron');
 const { createHash } = require('crypto');
 
-let monitor = spawn('nmcli monitor', { shell: true });
+let monitor = spawn('nmcli monitor', { shell: true }),
+	menu;
 
 const parseTerse = text => {
 	let arr = [],
@@ -59,7 +60,7 @@ const network = {
 			});
 	},
 
-	listen() {
+	changeListener() {
 		let cb;
 		let newData = data => {
 			data = data.toString();
@@ -114,7 +115,7 @@ const network = {
 			});
 	},
 
-	listenNetworks() {
+	networksListener() {
 		let cb,
 			i = 0;
 		let scan = () => {
@@ -174,8 +175,24 @@ const network = {
 	},
 
 	openMenu() {
+		menu.show();
+	},
+	menuListener() {
+		return {
+			listen(cb) {
+				menu.on('show', () => cb(true));
+				menu.on('hide', () => cb(false));
+			}
+		};
+	}
+};
+
+module.exports = {
+	applet: `${__dirname}/network.html`,
+	api: network,
+	init() {
 		let display = electron.screen.getAllDisplays()[0];
-		let window = new electron.BrowserWindow({
+		menu = new electron.BrowserWindow({
 			width: 300,
 			height: 900,
 			frame: false,
@@ -184,15 +201,16 @@ const network = {
 			x: display.bounds.width - 300,
 			focusable: true,
 			resizable: false,
-			titleBarStyle: 'hidden'
+			titleBarStyle: 'hidden',
+			show: false
 		});
-		window.setMenu(null);
-		window.loadURL(`file://${__dirname}/network-menu.html`);
-		window.on('blur', () => window.close());
+		menu.setMenu(null);
+		menu.loadURL(`file://${__dirname}/network-menu.html`);
+		menu.on('blur', () => menu.hide());
+		/*electron.ipcMain.on('on', (e, event) => {
+			menu.on(event, () => {
+				e.sender.send(`on:${event}`);
+			});
+		});*/
 	}
-};
-
-module.exports = {
-	applet: `${__dirname}/network.html`,
-	api: network
 };

@@ -6,7 +6,7 @@ const chalk = require('chalk');
 
 const CONFIG = {
 	height: 22,
-	plugins: ['touchscreen', 'power', 'clock'] // 'bluetooth', 'audio', 'network', 
+	plugins: ['touchscreen', 'bluetooth', 'network', 'audio', 'power', 'clock'] //, , 
 };
 
 let html = fs.readFileSync(`${__dirname}/panel.html`, 'utf8');
@@ -50,6 +50,8 @@ electron.app.whenReady().then(() => {
 				msg = msg.replace('power.', chalk.magentaBright('power') + '.');
 				msg = msg.replace('touchscreen.', chalk.greenBright('touchscreen') + '.');
 				msg = msg.replace('clock.', chalk.cyanBright('clock') + '.');
+				msg = msg.replace('audio.', chalk.yellowBright('audio') + '.');
+				msg = msg.replace('bluetooth.', chalk.blueBright('bluetooth') + '.');
 				msg = msg.replace(/(#\d+$)/, chalk.gray('$1'));
 			}
 			return msg;

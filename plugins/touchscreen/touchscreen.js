@@ -1,6 +1,6 @@
 'use strict';
 
-const { exec } = require('../../utils');
+const { exec } = require('../../src/utils');
 
 let listeners = [];
 
